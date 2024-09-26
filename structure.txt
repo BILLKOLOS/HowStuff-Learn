@@ -1,0 +1,77 @@
+HowStuff-Learn-App/
+├── backend/
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── userController.js
+│   │   ├── projectController.js
+│   │   ├── feedbackController.js
+│   │   ├── learningPathController.js
+│   │   ├── assessmentController.js
+│   │   ├── studyGroupController.js
+│   │   ├── lectureController.js
+│   │   └── resourceController.js
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Project.js
+│   │   ├── Feedback.js
+│   │   ├── LearningPath.js
+│   │   ├── Assessment.js
+│   │   ├── StudyGroup.js
+│   │   ├── Lecture.js
+│   │   └── Resource.js
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── userRoutes.js
+│   │   ├── projectRoutes.js
+│   │   ├── feedbackRoutes.js
+│   │   ├── learningPathRoutes.js
+│   │   ├── assessmentRoutes.js
+│   │   ├── studyGroupRoutes.js
+│   │   ├── lectureRoutes.js
+│   │   └── resourceRoutes.js
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── errorMiddleware.js
+│   ├── config/
+│   │   ├── db.js
+│   │   └── config.js
+│   ├── utils/
+│   │   ├── emailService.js
+│   │   ├── dataAnalysis.js
+│   │   ├── feedbackService.js
+│   │   ├── resourceService.js
+│   │   └── notificationService.js
+│   ├── app.js
+│   └── server.js
+├── frontend/
+│   ├── css/
+│   │   ├── styles.css
+│   ├── js/
+│   │   ├── main.js
+│   │   ├── auth.js
+│   │   ├── user.js
+│   │   ├── project.js
+│   │   ├── feedback.js
+│   │   ├── learningPath.js
+│   │   ├── assessment.js
+│   │   ├── studyGroup.js
+│   │   ├── lecture.js
+│   │   └── resource.js
+│   ├── images/
+│   ├── pages/
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── dashboard.html
+│   │   ├── project.html
+│   │   ├── feedback.html
+│   │   ├── learningPath.html
+│   │   ├── assessment.html
+│   │   ├── studyGroup.html
+│   │   ├── lecture.html
+│   │   └── resource.html
+├── .gitignore
+├── package.json
+├── README.md
+└── LICENSE
+
