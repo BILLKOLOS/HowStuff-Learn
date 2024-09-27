@@ -2,19 +2,17 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const ResourceService = require('../utils/resourceService'); // Assuming you have a service to handle OpenAI and Wikipedia integration
+const ResourceService = require('../utils/resourceService'); // Service to handle OpenAI and Wikipedia integration
 
 // User registration
 exports.register = async (req, res) => {
-    const { name, email, password, childAccount } = req.body;
+    const { username, email, password } = req.body; // Updated to use username instead of name
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({
-            name,
+            username,
             email,
-            password: hashedPassword,
-            childAccount,
+            password,
         });
 
         await newUser.save();
@@ -34,12 +32,12 @@ exports.login = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await user.comparePassword(password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in', error: error.message });
@@ -48,12 +46,12 @@ exports.login = async (req, res) => {
 
 // Link child's account
 exports.linkChildAccount = async (req, res) => {
-    const { childAccount } = req.body;
+    const { childAccount } = req.body; // Assuming childAccount is an ObjectId
     const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
-        user.childAccount = childAccount;
+        user.children.push(childAccount); // Use children array
         await user.save();
         res.status(200).json({ message: 'Child account linked successfully', user });
     } catch (error) {
@@ -63,11 +61,11 @@ exports.linkChildAccount = async (req, res) => {
 
 // Update user profile
 exports.updateProfile = async (req, res) => {
-    const { name, email } = req.body;
+    const { username, email } = req.body; // Update to include username
     const userId = req.user.id;
 
     try {
-        const user = await User.findByIdAndUpdate(userId, { name, email }, { new: true });
+        const user = await User.findByIdAndUpdate(userId, { username, email }, { new: true });
         res.status(200).json({ message: 'Profile updated successfully', user });
     } catch (error) {
         res.status(500).json({ message: 'Error updating profile', error: error.message });
@@ -92,6 +90,10 @@ exports.searchResources = async (req, res) => {
 
     try {
         const results = await ResourceService.search(query); // Call to your resource service for OpenAI/Wikipedia integration
+
+        // Save search history
+        await exports.saveSearchHistory(req, res, query, results); // Save the search query and results
+
         res.status(200).json({ message: 'Search results retrieved successfully', results });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching search results', error: error.message });
@@ -99,17 +101,15 @@ exports.searchResources = async (req, res) => {
 };
 
 // Save user search history
-exports.saveSearchHistory = async (req, res) => {
-    const { searchQuery } = req.body;
+exports.saveSearchHistory = async (req, res, searchQuery, results) => {
     const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
-        user.searchHistory.push(searchQuery); // Assuming you have a searchHistory array in the User model
+        user.searchHistory.push({ query: searchQuery, results }); // Save search query and results
         await user.save();
-        res.status(200).json({ message: 'Search history saved successfully', user });
     } catch (error) {
-        res.status(500).json({ message: 'Error saving search history', error: error.message });
+        console.error('Error saving search history:', error.message);
     }
 };
 
