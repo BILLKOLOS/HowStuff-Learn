@@ -38,6 +38,11 @@ const userSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    searchHistory: [{
+        query: { type: String, required: true },
+        results: [{ type: String }], // List of resource links
+        createdAt: { type: Date, default: Date.now }
+    }]
 });
 
 // Hash password before saving
@@ -58,4 +63,3 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
-
