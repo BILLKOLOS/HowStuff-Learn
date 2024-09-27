@@ -12,6 +12,15 @@ router.post('/login', userController.login);
 // Link child's account
 router.post('/link-child', authMiddleware.verifyToken, userController.linkChildAccount);
 
+// Create a child account
+router.post('/create-child', authMiddleware.verifyToken, userController.createChildAccount);
+
+// Unlink a child account
+router.delete('/unlink-child', authMiddleware.verifyToken, userController.unlinkChildAccount);
+
+// View child accounts
+router.get('/children', authMiddleware.verifyToken, userController.viewChildAccounts);
+
 // Update user profile
 router.put('/profile', authMiddleware.verifyToken, userController.updateProfile);
 
