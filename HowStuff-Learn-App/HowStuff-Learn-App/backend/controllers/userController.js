@@ -228,17 +228,30 @@ exports.getFeedback = async (req, res) => {
 };
 
 // Set learning goals
+const User = require('../models/User');
 exports.setLearningGoals = async (req, res) => {
-    const { goals } = req.body; // Goals set by the student
+    const { goals } = req.body;
     const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
-        user.goals = goals; // Assuming goals is an array in the User model
+        user.learningGoals = goals;
         await user.save();
         res.status(200).json({ message: 'Learning goals set successfully', goals });
     } catch (error) {
         res.status(500).json({ message: 'Error setting learning goals', error: error.message });
+    }
+};
+
+// View learning goals
+exports.viewLearningGoals = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        res.status(200).json({ message: 'Learning goals retrieved successfully', goals: user.learningGoals });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving learning goals', error: error.message });
     }
 };
 
