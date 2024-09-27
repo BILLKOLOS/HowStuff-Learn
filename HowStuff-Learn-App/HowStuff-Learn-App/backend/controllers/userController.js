@@ -6,7 +6,7 @@ const ResourceService = require('../utils/resourceService'); // Service to handl
 
 // User registration
 exports.register = async (req, res) => {
-    const { username, email, password } = req.body; // Updated to use username instead of name
+    const { username, email, password } = req.body;
 
     try {
         const newUser = new User({
@@ -44,6 +44,32 @@ exports.login = async (req, res) => {
     }
 };
 
+// Create a child account
+exports.createChildAccount = async (req, res) => {
+    const { username, email, password } = req.body; // Details for the child account
+    const userId = req.user.id; // Parent's user ID
+
+    try {
+        const newChild = new User({
+            username,
+            email,
+            password,
+            role: 'child', // Set role as child
+        });
+
+        await newChild.save();
+
+        // Link the child account to the parent
+        const user = await User.findById(userId);
+        user.children.push(newChild._id);
+        await user.save();
+
+        res.status(201).json({ message: 'Child account created successfully', child: newChild });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating child account', error: error.message });
+    }
+};
+
 // Link child's account
 exports.linkChildAccount = async (req, res) => {
     const { childAccount } = req.body; // Assuming childAccount is an ObjectId
@@ -59,9 +85,36 @@ exports.linkChildAccount = async (req, res) => {
     }
 };
 
+// Unlink child's account
+exports.unlinkChildAccount = async (req, res) => {
+    const { childAccountId } = req.body; // ID of the child account to unlink
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        user.children = user.children.filter(childId => childId.toString() !== childAccountId);
+        await user.save();
+        res.status(200).json({ message: 'Child account unlinked successfully', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error unlinking child account', error: error.message });
+    }
+};
+
+// View child's accounts
+exports.viewChildAccounts = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId).populate('children'); // Populate child accounts
+        res.status(200).json({ message: 'Child accounts retrieved successfully', children: user.children });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving child accounts', error: error.message });
+    }
+};
+
 // Update user profile
 exports.updateProfile = async (req, res) => {
-    const { username, email } = req.body; // Update to include username
+    const { username, email } = req.body;
     const userId = req.user.id;
 
     try {
@@ -89,10 +142,10 @@ exports.searchResources = async (req, res) => {
     const { query } = req.query;
 
     try {
-        const results = await ResourceService.search(query); // Call to your resource service for OpenAI/Wikipedia integration
+        const results = await ResourceService.search(query);
 
         // Save search history
-        await exports.saveSearchHistory(req, res, query, results); // Save the search query and results
+        await exports.saveSearchHistory(req, res, query, results);
 
         res.status(200).json({ message: 'Search results retrieved successfully', results });
     } catch (error) {
@@ -106,7 +159,7 @@ exports.saveSearchHistory = async (req, res, searchQuery, results) => {
 
     try {
         const user = await User.findById(userId);
-        user.searchHistory.push({ query: searchQuery, results }); // Save search query and results
+        user.searchHistory.push({ query: searchQuery, results });
         await user.save();
     } catch (error) {
         console.error('Error saving search history:', error.message);
@@ -118,7 +171,7 @@ exports.getSearchHistory = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const user = await User.findById(userId).select('searchHistory'); // Only select the searchHistory field
+        const user = await User.findById(userId).select('searchHistory');
         res.status(200).json({ message: 'Search history retrieved successfully', searchHistory: user.searchHistory });
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving search history', error: error.message });
