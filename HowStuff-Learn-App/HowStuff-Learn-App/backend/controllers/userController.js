@@ -2,6 +2,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const ResourceService = require('../utils/resourceService'); // Assuming you have a service to handle OpenAI and Wikipedia integration
 
 // User registration
 exports.register = async (req, res) => {
@@ -82,5 +83,44 @@ exports.deleteAccount = async (req, res) => {
         res.status(200).json({ message: 'Account deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Error deleting account', error: error.message });
+    }
+};
+
+// Search resources
+exports.searchResources = async (req, res) => {
+    const { query } = req.query;
+
+    try {
+        const results = await ResourceService.search(query); // Call to your resource service for OpenAI/Wikipedia integration
+        res.status(200).json({ message: 'Search results retrieved successfully', results });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching search results', error: error.message });
+    }
+};
+
+// Save user search history
+exports.saveSearchHistory = async (req, res) => {
+    const { searchQuery } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        user.searchHistory.push(searchQuery); // Assuming you have a searchHistory array in the User model
+        await user.save();
+        res.status(200).json({ message: 'Search history saved successfully', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error saving search history', error: error.message });
+    }
+};
+
+// Retrieve user search history
+exports.getSearchHistory = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId).select('searchHistory'); // Only select the searchHistory field
+        res.status(200).json({ message: 'Search history retrieved successfully', searchHistory: user.searchHistory });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving search history', error: error.message });
     }
 };
