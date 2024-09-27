@@ -1,5 +1,7 @@
 // Import necessary modules
 const User = require('../models/User');
+const Assessment = require('../models/Assessment'); // Model for assessments
+const Progress = require('../models/Progress'); // Model for progress tracking
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const ResourceService = require('../utils/resourceService'); // Service to handle OpenAI and Wikipedia integration
@@ -137,43 +139,144 @@ exports.deleteAccount = async (req, res) => {
     }
 };
 
-// Search resources
-exports.searchResources = async (req, res) => {
-    const { query } = req.query;
+// Create a formative assessment
+exports.createAssessment = async (req, res) => {
+    const { title, questions } = req.body; // Title and questions for the assessment
+    const userId = req.user.id; // User creating the assessment (teacher/admin)
 
     try {
-        const results = await ResourceService.search(query);
-
-        // Save search history
-        await exports.saveSearchHistory(req, res, query, results);
-
-        res.status(200).json({ message: 'Search results retrieved successfully', results });
+        const newAssessment = new Assessment({
+            title,
+            questions,
+            createdBy: userId,
+        });
+        await newAssessment.save();
+        res.status(201).json({ message: 'Assessment created successfully', assessment: newAssessment });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching search results', error: error.message });
+        res.status(500).json({ message: 'Error creating assessment', error: error.message });
     }
 };
 
-// Save user search history
-exports.saveSearchHistory = async (req, res, searchQuery, results) => {
+// Take an assessment
+exports.takeAssessment = async (req, res) => {
+    const { assessmentId, answers } = req.body; // Assessment ID and student's answers
+    const userId = req.user.id; // ID of the student taking the assessment
+
+    try {
+        const assessment = await Assessment.findById(assessmentId);
+        if (!assessment) {
+            return res.status(404).json({ message: 'Assessment not found' });
+        }
+
+        // Evaluate answers and provide feedback
+        const feedback = evaluateAssessment(assessment.questions, answers); // Assume this function evaluates answers
+        await saveProgress(userId, assessmentId, feedback); // Save progress and feedback
+
+        res.status(200).json({ message: 'Assessment submitted successfully', feedback });
+    } catch (error) {
+        res.status(500).json({ message: 'Error submitting assessment', error: error.message });
+    }
+};
+
+// Function to evaluate assessment (simplified)
+const evaluateAssessment = (questions, answers) => {
+    const feedback = {
+        correct: 0,
+        incorrect: 0,
+        details: [],
+    };
+
+    questions.forEach((question, index) => {
+        const isCorrect = question.correctAnswer === answers[index];
+        feedback.details.push({
+            question: question.questionText,
+            givenAnswer: answers[index],
+            isCorrect,
+        });
+        if (isCorrect) {
+            feedback.correct++;
+        } else {
+            feedback.incorrect++;
+        }
+    });
+
+    return feedback; // Return feedback object
+};
+
+// Save progress and feedback
+const saveProgress = async (userId, assessmentId, feedback) => {
+    const progressEntry = new Progress({
+        userId,
+        assessmentId,
+        feedback,
+        date: new Date(),
+    });
+
+    await progressEntry.save(); // Save the progress entry to the database
+};
+
+// Get assessment feedback for a student
+exports.getFeedback = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const feedbackEntries = await Progress.find({ userId }).populate('assessmentId'); // Populate assessment details
+        res.status(200).json({ message: 'Feedback retrieved successfully', feedbackEntries });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving feedback', error: error.message });
+    }
+};
+
+// Set learning goals
+exports.setLearningGoals = async (req, res) => {
+    const { goals } = req.body; // Goals set by the student
     const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
-        user.searchHistory.push({ query: searchQuery, results });
+        user.learningGoals = goals; // Assuming learningGoals is an array in the User model
         await user.save();
+        res.status(200).json({ message: 'Learning goals set successfully', goals });
     } catch (error) {
-        console.error('Error saving search history:', error.message);
+        res.status(500).json({ message: 'Error setting learning goals', error: error.message });
     }
 };
 
-// Retrieve user search history
-exports.getSearchHistory = async (req, res) => {
+// Log self-reflection
+exports.logSelfReflection = async (req, res) => {
+    const { reflection } = req.body; // Student's reflection input
     const userId = req.user.id;
 
     try {
-        const user = await User.findById(userId).select('searchHistory');
-        res.status(200).json({ message: 'Search history retrieved successfully', searchHistory: user.searchHistory });
+        const user = await User.findById(userId);
+        user.selfReflections.push({ reflection, date: new Date() }); // Assuming selfReflections is an array in the User model
+        await user.save();
+        res.status(200).json({ message: 'Self-reflection logged successfully', reflection });
     } catch (error) {
-        res.status(500).json({ message: 'Error retrieving search history', error: error.message });
+        res.status(500).json({ message: 'Error logging self-reflection', error: error.message });
+    }
+};
+
+// Search resources
+exports.searchResources = async (req, res) => {
+    const { query } = req.body; // The search query from the user
+
+    try {
+        const resources = await ResourceService.searchResources(query); // Use resource service for searching
+        res.status(200).json({ message: 'Resources retrieved successfully', resources });
+    } catch (error) {
+        res.status(500).json({ message: 'Error searching resources', error: error.message });
+    }
+};
+
+// View progress tracking
+exports.viewProgress = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const progressEntries = await Progress.find({ userId }).populate('assessmentId'); // Get progress data
+        res.status(200).json({ message: 'Progress retrieved successfully', progressEntries });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving progress', error: error.message });
     }
 };
