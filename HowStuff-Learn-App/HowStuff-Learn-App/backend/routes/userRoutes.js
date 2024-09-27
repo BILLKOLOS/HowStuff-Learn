@@ -15,5 +15,7 @@ router.post('/link-child', authMiddleware.verifyToken, userController.linkChildA
 // Update user profile
 router.put('/profile', authMiddleware.verifyToken, userController.updateProfile);
 
-module.exports = router;
+// Delete user account
+router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount);
 
+module.exports = router;
