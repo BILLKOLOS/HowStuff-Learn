@@ -1,0 +1,120 @@
+HowStuff-Learn-App/
+├── backend/
+│   ├── controllers/
+│   │   ├── userController.js                     // Handles user registration, login, and linking child accounts
+│   │   ├── contentController.js                  // Manages educational content (creation, retrieval, updates)
+│   │   ├── learningModuleController.js           // Handles practical learning modules (CRUD operations)
+│   │   ├── assessmentController.js               // Manages assessments and quizzes for students
+│   │   ├── virtualLectureController.js           // Facilitates virtual lectures (creation, joining, canceling)
+│   │   ├── quorumManagementController.js         // Manages quorum checks and notifications for lectures
+│   │   ├── paymentController.js                  // Handles payment processing and refunds for lectures
+│   │   ├── lectureFeedbackController.js          // Collects and summarizes feedback on lectures
+│   │   ├── lectureSchedulingController.js        // Manages scheduling and confirming lecture times
+│   │   ├── lectureRecordingController.js         // Handles recording and accessing past lectures
+│   │   ├── atHomeActivitiesController.js         // Suggests at-home activities for parents and children
+│   │   ├── communityController.js                // Manages community forum posts and discussions
+│   │   ├── progressTrackingController.js         // Tracks student progress and allows goal setting
+│   │   ├── interactiveContentController.js       // Manages interactive tutorials and simulations
+│   │   ├── collaborationController.js            // Facilitates the creation and management of study groups
+│   │   ├── analyticsController.js                // Tracks engagement metrics and generates reports
+│   │   ├── searchController.js                   // Handles advanced search queries
+│   │   ├── videoController.js                    // Manages video and animation content
+│   │   └── notificationController.js             // Manages notifications and alerts
+│   ├── models/
+│   │   ├── User.js                               // User model schema for students, parents, and educators
+│   │   ├── Content.js                            // Content model schema for educational materials
+│   │   ├── LearningModule.js                     // Learning module model schema for hands-on activities
+│   │   ├── Assessment.js                         // Assessment model schema for quizzes and tests
+│   │   ├── Lecture.js                            // Lecture model schema for virtual sessions
+│   │   ├── Payment.js                            // Payment model schema for managing transactions
+│   │   ├── Feedback.js                           // Feedback model schema for lectures and content
+│   │   ├── Activity.js                           // At-home activity model schema for suggestions
+│   │   ├── ForumPost.js                          // Model schema for community forum posts
+│   │   ├── ProgressReport.js                     // Model schema for tracking student progress
+│   │   ├── InteractiveContent.js                 // Model schema for interactive resources
+│   │   ├── StudyGroup.js                         // Study group model schema for collaboration
+│   │   ├── SearchQuery.js                        // Model schema for search queries
+│   │   ├── Video.js                              // Model schema for video content
+│   │   └── Notification.js                       // Model schema for notifications
+│   ├── routes/
+│   │   ├── userRoutes.js                         // Routes for user-related actions (auth, profile)
+│   │   ├── contentRoutes.js                      // Routes for content management (CRUD operations)
+│   │   ├── learningModuleRoutes.js               // Routes for learning module management
+│   │   ├── assessmentRoutes.js                   // Routes for assessments and quiz management
+│   │   ├── virtualLectureRoutes.js               // Routes for virtual lectures (creation and participation)
+│   │   ├── quorumManagementRoutes.js             // Routes for quorum management
+│   │   ├── paymentRoutes.js                      // Routes for payment processing
+│   │   ├── lectureFeedbackRoutes.js              // Routes for lecture feedback management
+│   │   ├── lectureSchedulingRoutes.js            // Routes for scheduling lectures
+│   │   ├── lectureRecordingRoutes.js             // Routes for managing recorded lectures
+│   │   ├── atHomeActivitiesRoutes.js             // Routes for at-home activity suggestions
+│   │   ├── communityRoutes.js                    // Routes for community forum interactions
+│   │   ├── progressTrackingRoutes.js             // Routes for tracking student progress
+│   │   ├── interactiveContentRoutes.js           // Routes for interactive content management
+│   │   ├── collaborationRoutes.js                // Routes for study group collaboration
+│   │   ├── searchRoutes.js                       // Routes for search queries
+│   │   ├── videoRoutes.js                        // Routes for video content management
+│   │   └── notificationRoutes.js                 // Routes for notifications
+│   ├── middleware/
+│   │   ├── authMiddleware.js                     // Middleware for user authentication
+│   │   └── errorMiddleware.js                    // Middleware for error handling
+│   ├── config/
+│   │   ├── db.js                                 // Database connection configuration
+│   │   └── config.js                             // Application configuration settings
+│   ├── utils/
+│   │   ├── emailService.js                       // Service for sending emails (notifications, feedback)
+│   │   ├── dataAnalysis.js                       // Utility for analyzing educational data
+│   │   ├── paymentService.js                     // Service for payment processing
+│   │   ├── notificationService.js                // Service for sending notifications
+│   │   ├── feedbackService.js                    // Service for managing feedback
+│   │   ├── resourceService.js                    // Service for managing educational resources
+│   │   ├── searchService.js                      // Service for handling search queries
+│   │   ├── videoService.js                       // Service for managing video content
+│   │   └── analyticsService.js                   // Service for analyzing user engagement
+│   ├── app.js                                    // Main application file
+│   └── server.js                                 // Server initialization and configuration
+├── frontend/
+│   ├── css/
+│   │   ├── styles.css                            // Main styles for the application
+│   ├── js/
+│   │   ├── main.js                               // Main JavaScript file for app initialization
+│   │   ├── user.js                               // JavaScript for user profile and authentication
+│   │   ├── content.js                            // JavaScript for content management
+│   │   ├── learningModule.js                     // JavaScript for learning module interactions
+│   │   ├── assessment.js                         // JavaScript for assessments and quizzes
+│   │   ├── virtualLecture.js                     // JavaScript for virtual lecture features
+│   │   ├── payment.js                            // JavaScript for handling payments
+│   │   ├── feedback.js                           // JavaScript for submitting and viewing feedback
+│   │   ├── lectureScheduling.js                  // JavaScript for scheduling lectures
+│   │   ├── atHomeActivities.js                   // JavaScript for at-home activity suggestions
+│   │   ├── community.js                          // JavaScript for community forum interactions
+│   │   ├── progressTracking.js                   // JavaScript for tracking progress
+│   │   ├── interactiveContent.js                 // JavaScript for interactive resources
+│   │   ├── collaboration.js                      // JavaScript for study group management
+│   │   ├── search.js                             // JavaScript for search queries
+│   │   ├── video.js                              // JavaScript for video content
+│   │   └── notification.js                       // JavaScript for notifications
+│   ├── images/                                   // Directory for application images
+│   ├── pages/
+│   │   ├── index.html                            // Homepage
+│   │   ├── login.html                            // Login page
+│   │   ├── register.html                         // Registration page
+│   │   ├── dashboard.html                        // User dashboard
+│   │   ├── content.html                          // Content management and viewing page
+│   │   ├── learningModule.html                   // Learning module interaction page
+│   │   ├── assessment.html                       // Assessment and quiz page
+│   │   ├── virtualLecture.html                   // Virtual lecture participation page
+│   │   ├── payment.html                          // Payment processing page
+│   │   ├── feedback.html                         // Feedback submission and review page
+│   │   ├── lectureScheduling.html                // Lecture scheduling page
+│   │   ├── atHomeActivities.html                 // At-home activity suggestions page
+│   │   ├── community.html                        // Community forum page
+│   │   ├── progressTracking.html                 // Progress tracking page
+│   │   ├── search.html                           // Search query page
+│   │   ├── video.html                            // Video content page
+│   │   └── notification.html                     // Notifications page
+├── .gitignore                                    // Specifies files and directories to ignore in Git
+├── package.json                                  // Contains project dependencies and scripts
+├── README.md                                     // Project documentation and instructions
+└── LICENSE                                       // License information for the project
+
