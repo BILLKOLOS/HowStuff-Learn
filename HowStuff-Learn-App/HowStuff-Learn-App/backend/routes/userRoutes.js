@@ -18,4 +18,13 @@ router.put('/profile', authMiddleware.verifyToken, userController.updateProfile)
 // Delete user account
 router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount);
 
+// Search resources
+router.get('/search', authMiddleware.verifyToken, userController.searchResources);
+
+// Save search history
+router.post('/search/history', authMiddleware.verifyToken, userController.saveSearchHistory);
+
+// Get search history
+router.get('/search/history', authMiddleware.verifyToken, userController.getSearchHistory);
+
 module.exports = router;
