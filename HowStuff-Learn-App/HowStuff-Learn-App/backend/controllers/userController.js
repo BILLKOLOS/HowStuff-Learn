@@ -234,7 +234,7 @@ exports.setLearningGoals = async (req, res) => {
 
     try {
         const user = await User.findById(userId);
-        user.learningGoals = goals; // Assuming learningGoals is an array in the User model
+        user.goals = goals; // Assuming goals is an array in the User model
         await user.save();
         res.status(200).json({ message: 'Learning goals set successfully', goals });
     } catch (error) {
@@ -249,34 +249,78 @@ exports.logSelfReflection = async (req, res) => {
 
     try {
         const user = await User.findById(userId);
-        user.selfReflections.push({ reflection, date: new Date() }); // Assuming selfReflections is an array in the User model
+        user.reflections.push({ reflectionText: reflection, createdAt: new Date() }); // Assuming reflections is an array in the User model
         await user.save();
         res.status(200).json({ message: 'Self-reflection logged successfully', reflection });
     } catch (error) {
         res.status(500).json({ message: 'Error logging self-reflection', error: error.message });
+
     }
 };
-
 // Search resources
 exports.searchResources = async (req, res) => {
-    const { query } = req.body; // The search query from the user
+    const { query } = req.body; // Search query provided by the user
 
     try {
-        const resources = await ResourceService.searchResources(query); // Use resource service for searching
+        // Use ResourceService to search for educational resources
+        const resources = await ResourceService.searchResources(query); // This should handle OpenAI and Wikipedia integration
         res.status(200).json({ message: 'Resources retrieved successfully', resources });
     } catch (error) {
         res.status(500).json({ message: 'Error searching resources', error: error.message });
     }
 };
 
-// View progress tracking
-exports.viewProgress = async (req, res) => {
+// Get user details
+exports.getUserDetails = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const progressEntries = await Progress.find({ userId }).populate('assessmentId'); // Get progress data
-        res.status(200).json({ message: 'Progress retrieved successfully', progressEntries });
+        const user = await User.findById(userId).populate('children'); // Populate children
+        res.status(200).json({ message: 'User details retrieved successfully', user });
     } catch (error) {
-        res.status(500).json({ message: 'Error retrieving progress', error: error.message });
+        res.status(500).json({ message: 'Error retrieving user details', error: error.message });
     }
 };
+
+// Update user password
+exports.updatePassword = async (req, res) => {
+    const { oldPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const user = await User.findById(userId);
+        const isMatch = await user.comparePassword(oldPassword);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Old password is incorrect' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating password', error: error.message });
+    }
+};
+
+// Delete child's account
+exports.deleteChildAccount = async (req, res) => {
+    const { childAccountId } = req.body; // ID of the child account to delete
+    const userId = req.user.id;
+
+    try {
+        // Delete the child account
+        await User.findByIdAndDelete(childAccountId);
+        
+        // Unlink the child account from the parent
+        const user = await User.findById(userId);
+        user.children = user.children.filter(childId => childId.toString() !== childAccountId);
+        await user.save();
+
+        res.status(200).json({ message: 'Child account deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting child account', error: error.message });
+    }
+};
+
