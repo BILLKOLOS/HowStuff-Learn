@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const lectureSchema = new Schema({
+const contentSchema = new Schema({
     title: {
         type: String,
         required: true,
@@ -11,25 +11,23 @@ const lectureSchema = new Schema({
         type: String,
         required: true,
     },
-    scheduledTime: {
-        type: Date,
+    category: {
+        type: String,
         required: true,
+        enum: ['math', 'science', 'language', 'arts', 'history', 'technology', 'other'],
     },
-    duration: {
-        type: Number, // Duration in minutes
-        required: true,
-    },
-    lecturer: {
-        type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who is the lecturer
-        required: true,
-    },
-    attendees: [{
-        type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to users attending the lecture
+    tags: [{
+        type: String,
+        trim: true,
     }],
-    recordingLink: {
-        type: String, // URL to the recorded lecture
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the user who created the content
+        required: true,
+    },
+    mediaUrl: {
+        type: String,
+        required: true, // URL to the educational material (video, article, etc.)
     },
     createdAt: {
         type: Date,
@@ -42,12 +40,12 @@ const lectureSchema = new Schema({
 });
 
 // Middleware to update `updatedAt` before saving
-lectureSchema.pre('save', function(next) {
+contentSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const Lecture = mongoose.model('Lecture', lectureSchema);
+const Content = mongoose.model('Content', contentSchema);
 
-module.exports = Lecture;
+module.exports = Content;
 

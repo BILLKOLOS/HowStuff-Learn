@@ -1,35 +1,33 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const lectureSchema = new Schema({
+const interactiveContentSchema = new Schema({
     title: {
         type: String,
         required: true,
-        trim: true,
     },
     description: {
         type: String,
         required: true,
     },
-    scheduledTime: {
-        type: Date,
+    contentType: {
+        type: String,
+        enum: ['video', 'quiz', 'simulation', 'game'], // Types of interactive content
         required: true,
     },
-    duration: {
-        type: Number, // Duration in minutes
+    url: {
+        type: String,
         required: true,
     },
-    lecturer: {
+    learningModule: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who is the lecturer
+        ref: 'LearningModule', // Reference to the LearningModule model
         required: true,
     },
-    attendees: [{
+    createdBy: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to users attending the lecture
-    }],
-    recordingLink: {
-        type: String, // URL to the recorded lecture
+        ref: 'User', // Reference to the User model (educator or creator)
+        required: true,
     },
     createdAt: {
         type: Date,
@@ -42,12 +40,12 @@ const lectureSchema = new Schema({
 });
 
 // Middleware to update `updatedAt` before saving
-lectureSchema.pre('save', function(next) {
+interactiveContentSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const Lecture = mongoose.model('Lecture', lectureSchema);
+const InteractiveContent = mongoose.model('InteractiveContent', interactiveContentSchema);
 
-module.exports = Lecture;
+module.exports = InteractiveContent;
 

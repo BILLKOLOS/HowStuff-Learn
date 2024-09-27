@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const lectureSchema = new Schema({
+const learningModuleSchema = new Schema({
     title: {
         type: String,
         required: true,
@@ -11,25 +11,18 @@ const lectureSchema = new Schema({
         type: String,
         required: true,
     },
-    scheduledTime: {
-        type: Date,
+    objectives: [{
+        type: String,
         required: true,
-    },
-    duration: {
-        type: Number, // Duration in minutes
-        required: true,
-    },
-    lecturer: {
-        type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who is the lecturer
-        required: true,
-    },
-    attendees: [{
-        type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to users attending the lecture
     }],
-    recordingLink: {
-        type: String, // URL to the recorded lecture
+    activities: [{
+        type: String,
+        required: true,
+    }],
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the user who created the module
+        required: true,
     },
     createdAt: {
         type: Date,
@@ -42,12 +35,12 @@ const lectureSchema = new Schema({
 });
 
 // Middleware to update `updatedAt` before saving
-lectureSchema.pre('save', function(next) {
+learningModuleSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();
 });
 
-const Lecture = mongoose.model('Lecture', lectureSchema);
+const LearningModule = mongoose.model('LearningModule', learningModuleSchema);
 
-module.exports = Lecture;
+module.exports = LearningModule;
 
