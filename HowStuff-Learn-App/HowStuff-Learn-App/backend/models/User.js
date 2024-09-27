@@ -28,7 +28,7 @@ const userSchema = new Schema({
     },
     profilePicture: {
         type: String,
-        default: 'defaultProfilePic.png', // path to default profile picture
+        default: 'defaultProfilePic.png', // Path to default profile picture
     },
     children: [{
         type: Schema.Types.ObjectId,
@@ -41,6 +41,21 @@ const userSchema = new Schema({
     searchHistory: [{
         query: { type: String, required: true },
         results: [{ type: String }], // List of resource links
+        createdAt: { type: Date, default: Date.now }
+    }],
+    progress: [{
+        assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' }, // Reference to assessments
+        score: { type: Number, required: true },
+        createdAt: { type: Date, default: Date.now }
+    }],
+    goals: [{
+        goalDescription: { type: String, required: true },
+        targetDate: { type: Date, required: true },
+        createdAt: { type: Date, default: Date.now }
+    }],
+    reflections: [{
+        moduleId: { type: Schema.Types.ObjectId, ref: 'Module' }, // Reference to learning modules
+        reflectionText: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
     }]
 });
