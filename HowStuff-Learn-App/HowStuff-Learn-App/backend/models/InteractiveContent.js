@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Interactive Content Schema Definition
 const interactiveContentSchema = new Schema({
     title: {
         type: String,
@@ -18,6 +19,12 @@ const interactiveContentSchema = new Schema({
     url: {
         type: String,
         required: true,
+        validate: {
+            validator: function(v) {
+                return /^(ftp|http|https):\/\/[^ "]+$/.test(v); // Validate URL format
+            },
+            message: props => `${props.value} is not a valid URL!`,
+        },
     },
     learningModule: {
         type: Schema.Types.ObjectId,
@@ -48,4 +55,3 @@ interactiveContentSchema.pre('save', function(next) {
 const InteractiveContent = mongoose.model('InteractiveContent', interactiveContentSchema);
 
 module.exports = InteractiveContent;
-
