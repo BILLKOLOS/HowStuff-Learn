@@ -36,6 +36,15 @@ const paymentSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    // New fields for enhanced payment tracking
+    currency: {
+        type: String,
+        required: true,
+        default: 'USD', // Default currency for payments
+    },
+    paymentDetails: {
+        type: Schema.Types.Mixed, // Flexible structure for storing additional payment info
+    },
 });
 
 // Middleware to update `updatedAt` before saving
@@ -48,6 +57,14 @@ paymentSchema.pre('save', function(next) {
 paymentSchema.pre('save', function(next) {
     if (this.amount < 0) {
         return next(new Error('Payment amount must be a positive value.'));
+    }
+    next();
+});
+
+// Middleware to validate payment status
+paymentSchema.pre('save', function(next) {
+    if (!['Pending', 'Completed', 'Failed'].includes(this.status)) {
+        return next(new Error('Invalid payment status.'));
     }
     next();
 });
