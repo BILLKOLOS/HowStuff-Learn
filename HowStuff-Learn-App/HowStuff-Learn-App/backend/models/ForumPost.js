@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Forum Post Schema Definition
 const forumPostSchema = new Schema({
     title: {
         type: String,
@@ -35,6 +36,10 @@ const forumPostSchema = new Schema({
             default: Date.now,
         },
     }],
+    likes: [{
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Users who liked the post
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -54,4 +59,3 @@ forumPostSchema.pre('save', function(next) {
 const ForumPost = mongoose.model('ForumPost', forumPostSchema);
 
 module.exports = ForumPost;
-
