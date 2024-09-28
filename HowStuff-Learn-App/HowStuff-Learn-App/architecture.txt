@@ -1,0 +1,130 @@
+📦 HowStuff-Learn-App/
+├── backend/
+│   ├── 📁 controllers
+│   │   ├── authController.js             # Handles authentication (login, register)
+│   │   ├── userController.js             # User management
+│   │   ├── projectController.js          # Project-based learning (enhanced)
+│   │   ├── feedbackController.js         # Post-lecture feedback (enhanced)
+│   │   ├── learningPathController.js     # Manages user learning paths (enhanced)
+│   │   ├── assessmentController.js       # Quizzes, assessments, and evaluations
+│   │   ├── studyGroupController.js       # Study groups management
+│   │   ├── lectureController.js          # Full-featured lecture management (17 enhancements)
+│   │   ├── resourceController.js         # Handles resource uploads and sharing (enhanced)
+│   │   ├── lectureRecordingController.js # Lecture recording and playback
+│   │   ├── quizController.js             # Quiz management during lectures
+│   │   ├── lectureSchedulingController.js # Handles lecture scheduling and notifications
+│   │   ├── pollsSurveysController.js     # Live polls and surveys during lectures
+│   │   ├── notificationController.js     # Notifications for lectures and events
+│   │   ├── analyticsController.js        # User engagement analytics
+│   │   ├── paymentController.js          # Payment handling for premium lectures
+│   │   ├── reportController.js           # Manages reports generation (user engagement, performance)
+│   │   ├── subscriptionController.js      # Manages subscription plans and billing
+│   │   ├── contentModerationController.js # Handles content moderation
+│   │   └── aiAssistantController.js      # AI assistance for personalized learning
+│
+│   ├── 📁 models
+│   │   ├── User.js                       # User schema
+│   │   ├── Project.js                    # Project-based learning model
+│   │   ├── Feedback.js                   # Feedback model
+│   │   ├── LearningPath.js               # Learning path schema
+│   │   ├── Assessment.js                 # Assessment schema
+│   │   ├── StudyGroup.js                 # Study group model
+│   │   ├── Lecture.js                    # Lecture schema (with all 17 enhancements)
+│   │   ├── Resource.js                   # Resource model (documents, videos, etc.)
+│   │   ├── Poll.js                       # Model for live polls during lectures
+│   │   ├── Quiz.js                       # Quiz and assessment model
+│   │   ├── Notification.js               # Notifications model
+│   │   ├── Payment.js                    # Payments for premium lectures
+│   │   ├── Analytics.js                  # Model for lecture engagement analytics
+│   │   ├── Report.js                     # Report schema/model for performance and engagement
+│   │   ├── Subscription.js               # Subscription plans model
+│   │   ├── Moderation.js                 # Model for moderated content
+│   │   └── AIResponse.js                 # AI-generated responses for learning assistance
+│
+│   ├── 📁 routes
+│   │   ├── authRoutes.js                 # Authentication routes
+│   │   ├── userRoutes.js                 # User routes
+│   │   ├── projectRoutes.js              # Project-based learning routes
+│   │   ├── feedbackRoutes.js             # Post-lecture feedback routes
+│   │   ├── learningPathRoutes.js         # Learning path routes
+│   │   ├── assessmentRoutes.js           # Quiz and assessments routes
+│   │   ├── studyGroupRoutes.js           # Study group routes
+│   │   ├── lectureRoutes.js              # Lecture routes (17 enhancements)
+│   │   ├── resourceRoutes.js             # Resource upload/sharing routes
+│   │   ├── lectureRecordingRoutes.js     # Lecture recording and playback routes
+│   │   ├── quizRoutes.js                 # Routes for quizzes
+│   │   ├── schedulingRoutes.js           # Routes for lecture scheduling and notifications
+│   │   ├── pollsSurveysRoutes.js         # Routes for polls and surveys
+│   │   ├── notificationRoutes.js         # Routes for notifications
+│   │   ├── analyticsRoutes.js            # Routes for lecture analytics
+│   │   ├── paymentRoutes.js              # Routes for premium lecture payments
+│   │   ├── reportRoutes.js               # Routes for report generation
+│   │   ├── subscriptionRoutes.js         # Routes for managing subscriptions
+│   │   └── moderationRoutes.js           # Routes for content moderation
+│
+│   ├── 📁 middleware
+│   │   ├── authMiddleware.js             # Authentication middleware
+│   │   ├── errorMiddleware.js            # Error handling middleware
+│   │   ├── quorumMiddleware.js           # Checks lecture quorum before starting
+│   │   ├── validationMiddleware.js       # Input validation middleware
+│   │   ├── loggingMiddleware.js          # Middleware for logging requests/responses
+│   │   ├── rateLimitMiddleware.js        # Rate limiting middleware to prevent abuse
+│   │   ├── accessControlMiddleware.js    # Role-based access control middleware
+│   │   └── contentModerationMiddleware.js # Middleware for content moderation
+│
+│   ├── 📁 config
+│   │   ├── db.js                         # Database connection
+│   │   ├── config.js                     # App configurations
+│   │   ├── firebase.js                   # Firebase config for authentication
+│   │   ├── cors.js                       # CORS configuration for the backend
+│   │   ├── logger.js                     # Centralized logging configuration
+│   │   ├── emailService.js               # Email notification configuration
+│   │   ├── redis.js                      # Redis configuration for caching and message queues
+│   │   └── aws.js                       # AWS SDK configuration for file storage (S3)
+│
+│   ├── 📁 utils
+│   │   ├── emailService.js               # Email notifications
+│   │   ├── dataAnalysis.js               # Data analytics utilities
+│   │   ├── feedbackService.js            # Feedback collection and summary
+│   │   ├── resourceService.js            # Resource management
+│   │   ├── jwt.js                        # JWT handling utilities
+│   │   ├── logger.js                     # Logging utility
+│   │   ├── timeUtils.js                  # Time zone utility for scheduling
+│   │   ├── reportGenerator.js            # Utility for generating reports
+│   │   ├── aiService.js                  # Utility for AI integration (e.g., OpenAI API)
+│   │   └── caching.js                    # Caching utilities using Redis
+│
+│   ├── 📁 services                       # Service layer for business logic
+│   │   ├── userService.js                # Business logic for user operations
+│   │   ├── projectService.js             # Business logic for project-based learning
+│   │   ├── feedbackService.js            # Business logic for feedback management
+│   │   ├── learningPathService.js        # Business logic for learning paths
+│   │   ├── studyGroupService.js          # Business logic for study groups
+│   │   ├── lectureService.js             # Business logic for lectures
+│   │   ├── resourceService.js            # Business logic for resources
+│   │   ├── paymentService.js             # Business logic for payment processing
+│   │   └── moderationService.js          # Business logic for content moderation
+│
+│   ├── app.js                            # Express app entry point
+│   └── server.js                         # Server setup
+│
+├── frontend/
+│   ├── 📁 css
+│   │   ├── styles.css                    # Global styles
+│   │   ├── responsive.css                # Responsive design styles
+│   │   ├── themes.css                    # Theme management styles
+│   │   ├── animations.css                 # CSS for animations and transitions
+│   │   └── print.css                     # Print styles
+│
+│   ├── 📁 js
+│   │   ├── main.js                       # General front-end JS logic
+│   │   ├── auth.js                       # Authentication scripts
+│   │   ├── user.js                       # User management
+│   │   ├── project.js                    # Project-based learning
+│   │   ├── feedback.js                   # Feedback management
+│   │   ├── learningPath.js               # Learning path logic
+│   │   ├── assessment.js                 # Quiz and assessment logic
+│   │   ├── studyGroup.js                 # Study group functionality
+│   │   ├── lecture.js                    # Lecture streaming, scheduling, and feedback
+│   │   ├── resource.js                   # Resource management scripts
+│   │   ├── notification.js
