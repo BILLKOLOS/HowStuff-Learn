@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Feedback Schema Definition
 const feedbackSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -26,6 +27,11 @@ const feedbackSchema = new Schema({
         type: String,
         trim: true,
     },
+    feedbackType: {
+        type: String,
+        required: true,
+        enum: ['content', 'lecture'], // Type of feedback
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -45,4 +51,3 @@ feedbackSchema.pre('save', function(next) {
 const Feedback = mongoose.model('Feedback', feedbackSchema);
 
 module.exports = Feedback;
-
