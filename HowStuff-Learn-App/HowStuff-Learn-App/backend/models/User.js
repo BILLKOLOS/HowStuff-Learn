@@ -30,7 +30,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['student', 'parent', 'educator', 'admin'], // Added 'admin' role for better management
+        enum: ['student', 'parent', 'educator', 'admin'], // Roles for different user types
         default: 'student',
     },
     profilePicture: {
@@ -79,7 +79,14 @@ const userSchema = new Schema({
     address: {
         type: String,
         trim: true,
-    }
+    },
+    lastLogin: {
+        type: Date, // Track the last login time
+    },
+    isActive: {
+        type: Boolean,
+        default: true, // Track if the user account is active
+    },
 });
 
 // Hash password before saving
