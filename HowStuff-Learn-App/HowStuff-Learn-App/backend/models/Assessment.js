@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Question Schema Definition
 const questionSchema = new Schema({
     question: {
         type: String,
@@ -18,6 +19,7 @@ const questionSchema = new Schema({
     }],
 });
 
+// Assessment Schema Definition
 const assessmentSchema = new Schema({
     title: {
         type: String,
@@ -33,6 +35,16 @@ const assessmentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User', // Reference to the user who created the assessment
         required: true,
+    },
+    category: {
+        type: String,
+        required: true,
+        enum: ['math', 'science', 'language', 'arts', 'history', 'technology'], // Categories for assessments
+    },
+    targetAudience: {
+        type: String,
+        required: true,
+        enum: ['children', 'teens', 'adults'], // Specifies the audience for the assessment
     },
     createdAt: {
         type: Date,
@@ -53,4 +65,3 @@ assessmentSchema.pre('save', function(next) {
 const Assessment = mongoose.model('Assessment', assessmentSchema);
 
 module.exports = Assessment;
-
