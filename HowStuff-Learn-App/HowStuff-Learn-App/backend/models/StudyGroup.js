@@ -35,6 +35,14 @@ const studyGroupSchema = new Schema({
             type: String,
             required: true,
         },
+        notes: {
+            type: String, // Optional field for meeting notes
+            trim: true,
+        },
+        duration: {
+            type: Number, // Duration of the meeting in minutes
+            min: 0,
+        },
     }],
     createdAt: {
         type: Date,
@@ -44,11 +52,23 @@ const studyGroupSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    isActive: {
+        type: Boolean,
+        default: true, // To track if the study group is active
+    },
 });
 
 // Middleware to update `updatedAt` before saving
 studyGroupSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
+    next();
+});
+
+// Middleware to validate members
+studyGroupSchema.pre('save', function(next) {
+    if (this.members.length === 0) {
+        return next(new Error('A study group must have at least one member.'));
+    }
     next();
 });
 
