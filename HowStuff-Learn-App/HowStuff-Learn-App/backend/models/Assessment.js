@@ -17,6 +17,11 @@ const questionSchema = new Schema({
             required: true,
         },
     }],
+    // New field to provide feedback for each question
+    feedback: {
+        type: String,
+        default: '', // Optional feedback for incorrect answers
+    },
 });
 
 // Assessment Schema Definition
@@ -54,6 +59,12 @@ const assessmentSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    // New field for assessing difficulty level
+    difficultyLevel: {
+        type: String,
+        required: true,
+        enum: ['easy', 'medium', 'hard'], // Difficulty levels for assessments
+    },
 });
 
 // Middleware to update `updatedAt` before saving
@@ -62,6 +73,9 @@ assessmentSchema.pre('save', function(next) {
     next();
 });
 
+// Create models
+const Question = mongoose.model('Question', questionSchema); // Optional if you want to manage questions separately
 const Assessment = mongoose.model('Assessment', assessmentSchema);
 
+// Export the Assessment model
 module.exports = Assessment;
