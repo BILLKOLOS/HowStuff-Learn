@@ -40,11 +40,31 @@ const feedbackSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    // New fields for enhanced feedback management
+    response: {
+        type: String,
+        trim: true, // Optional response from educators or admins
+    },
+    isResolved: {
+        type: Boolean,
+        default: false, // Flag to indicate if feedback has been addressed
+    },
+    resolvedAt: {
+        type: Date, // Timestamp for when feedback was resolved
+    },
 });
 
 // Middleware to update `updatedAt` before saving
 feedbackSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
+    next();
+});
+
+// Middleware to update `resolvedAt` when feedback is marked as resolved
+feedbackSchema.pre('save', function(next) {
+    if (this.isResolved && !this.resolvedAt) {
+        this.resolvedAt = Date.now();
+    }
     next();
 });
 
