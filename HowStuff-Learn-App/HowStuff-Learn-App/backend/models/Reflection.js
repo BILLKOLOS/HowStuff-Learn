@@ -26,6 +26,12 @@ const reflectionSchema = new Schema({
         type: Date,
         default: Date.now, // Timestamp for when the reflection was last updated
     },
+    // New field to store the user's mood or feelings during reflection
+    mood: {
+        type: String,
+        enum: ['happy', 'neutral', 'sad', 'frustrated', 'motivated'], // Possible moods during reflection
+        default: 'neutral', // Default mood
+    },
 });
 
 // Middleware to update `updatedAt` before saving
