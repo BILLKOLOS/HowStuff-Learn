@@ -35,6 +35,25 @@ const resourceSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    // New fields for enhanced resource management
+    tags: [{
+        type: String, // Tags for categorizing resources
+        trim: true,
+    }],
+    author: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the author of the resource
+    },
+    rating: {
+        type: Number, // User rating for the resource
+        min: 0,
+        max: 5,
+        default: 0,
+    },
+    isFeatured: {
+        type: Boolean,
+        default: false, // Flag for featured resources
+    },
 });
 
 // Middleware to update `updatedAt` before saving
@@ -43,6 +62,7 @@ resourceSchema.pre('save', function(next) {
     next();
 });
 
+// Create Resource model
 const Resource = mongoose.model('Resource', resourceSchema);
 
 module.exports = Resource;
