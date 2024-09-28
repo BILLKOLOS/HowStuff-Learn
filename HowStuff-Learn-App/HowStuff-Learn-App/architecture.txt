@@ -128,3 +128,79 @@
 │   │   ├── lecture.js                    # Lecture streaming, scheduling, and feedback
 │   │   ├── resource.js                   # Resource management scripts
 │   │   ├── notification.js
+│   │   ├── notification.js               # Notification handling
+│   │   ├── payment.js                    # Payment processing scripts
+│   │   ├── analytics.js                  # User engagement analytics scripts
+│   │   ├── report.js                     # Reporting functionality
+│   │   ├── subscription.js               # Subscription management
+│   │   └── moderation.js                 # Content moderation scripts
+│
+│   ├── 📁 components                     # Reusable UI components
+│   │   ├── Header.js                     # Header component
+│   │   ├── Footer.js                     # Footer component
+│   │   ├── Sidebar.js                    # Sidebar navigation
+│   │   ├── UserProfile.js                # User profile component
+│   │   ├── LearningPath.js               # Learning path component
+│   │   ├── FeedbackForm.js               # Feedback form component
+│   │   ├── LectureList.js                # List of lectures component
+│   │   ├── LectureDetail.js              # Lecture detail and playback component
+│   │   ├── ProjectCard.js                # Project card component
+│   │   ├── QuizComponent.js              # Quiz component for assessments
+│   │   ├── PollComponent.js              # Polling component
+│   │   ├── NotificationBell.js           # Notification bell for alerts
+│   │   └── LoadingSpinner.js             # Loading spinner component
+│
+│   ├── 📁 pages                          # Page components
+│   │   ├── HomePage.js                   # Home page
+│   │   ├── LoginPage.js                  # Login page
+│   │   ├── RegisterPage.js               # Registration page
+│   │   ├── UserProfilePage.js            # User profile page
+│   │   ├── LecturePage.js                # Lecture page with streaming
+│   │   ├── FeedbackPage.js               # Feedback submission page
+│   │   ├── ProjectPage.js                # Project-based learning page
+│   │   ├── AssessmentPage.js             # Assessment and quizzes page
+│   │   ├── SubscriptionPage.js           # Subscription management page
+│   │   ├── ModerationPage.js             # Content moderation page
+│   │   └── ErrorPage.js                  # Error handling page
+│
+│   ├── 📁 assets                         # Static assets
+│   │   ├── images                        # Images used in the app
+│   │   ├── videos                        # Video assets
+│   │   └── icons                         # Icon assets
+│
+│   ├── 📁 tests                          # Tests and test cases
+│   │   ├── unit                          # Unit tests
+│   │   ├── integration                    # Integration tests
+│   │   └── e2e                           # End-to-end tests
+│
+│   ├── 📁 docs                           # Documentation
+│   │   ├── API.md                        # API documentation
+│   │   ├── README.md                     # Project overview and setup instructions
+│   │   └── CONTRIBUTING.md               # Contribution guidelines
+│
+│   ├── .env                              # Environment variables for configuration
+│   ├── .gitignore                        # Git ignore file
+│   ├── package.json                      # Node.js dependencies and scripts
+│   ├── package-lock.json                 # Lock file for dependencies
+│   ├── webpack.config.js                 # Webpack configuration (if using Webpack)
+│   ├── babel.config.js                   # Babel configuration (if using Babel)
+│   └── jest.config.js                    # Jest configuration (if using Jest for testing)
+│
+├── database/
+│   ├── migrations/                       # Database migrations
+│   ├── seeds/                            # Database seed files
+│   └── schema.sql                        # Database schema file
+│
+├── devops/
+│   ├── docker/                           # Docker configuration files
+│   │   ├── Dockerfile                    # Dockerfile for the application
+│   │   └── docker-compose.yml            # Docker Compose file
+│   ├── kubernetes/                       # Kubernetes configuration files (if using Kubernetes)
+│   ├── ci-cd/                           # Continuous Integration and Deployment scripts
+│   │   ├── github-actions.yml            # GitHub Actions workflow file
+│   │   └── deploy.sh                     # Deployment script
+│   └── monitoring/                       # Monitoring and logging configuration
+│       ├── prometheus.yml                # Prometheus configuration
+│       └── grafana-dashboard.json         # Grafana dashboard configuration
+│
+└── README.md                             # Project overview and setup instructions
