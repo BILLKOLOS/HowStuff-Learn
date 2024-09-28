@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Lecture Schema Definition
 const lectureSchema = new Schema({
     title: {
         type: String,
@@ -31,6 +32,23 @@ const lectureSchema = new Schema({
     recordingLink: {
         type: String, // URL to the recorded lecture
     },
+    feedback: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', // Reference to the user providing feedback
+            required: true,
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: true,
+        },
+        comment: {
+            type: String,
+            trim: true,
+        },
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -50,4 +68,3 @@ lectureSchema.pre('save', function(next) {
 const Lecture = mongoose.model('Lecture', lectureSchema);
 
 module.exports = Lecture;
-
