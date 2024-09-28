@@ -40,6 +40,20 @@ const projectSchema = new Schema({
         type: Date,
         default: Date.now, // Timestamp for when the project was last updated
     },
+    milestones: [{
+        title: { type: String, required: true }, // Title of the milestone
+        description: { type: String }, // Description of the milestone
+        dueDate: { type: Date }, // Due date for the milestone
+        completed: { type: Boolean, default: false }, // Indicates if the milestone is completed
+    }],
+    resources: [{
+        type: String, // Links to any resources related to the project
+    }],
+    priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'], // Priority levels for the project
+        default: 'Medium', // Default priority is medium
+    },
 });
 
 // Middleware to update `updatedAt` before saving
