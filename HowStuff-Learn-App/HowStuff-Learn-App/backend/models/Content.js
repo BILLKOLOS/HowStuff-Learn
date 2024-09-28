@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Content Schema Definition
 const contentSchema = new Schema({
     title: {
         type: String,
@@ -29,6 +30,14 @@ const contentSchema = new Schema({
         type: String,
         required: true, // URL to the educational material (video, article, etc.)
     },
+    type: {
+        type: String,
+        required: true,
+        enum: ['video', 'article', 'interactive', 'quiz'], // Added type of content
+    },
+    relatedTopics: [{
+        type: String, // Topics that this content relates to (e.g., "Airplanes", "Renewable Energy")
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -48,4 +57,3 @@ contentSchema.pre('save', function(next) {
 const Content = mongoose.model('Content', contentSchema);
 
 module.exports = Content;
-
