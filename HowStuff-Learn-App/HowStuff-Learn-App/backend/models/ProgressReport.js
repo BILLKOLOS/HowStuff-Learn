@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Progress Report Schema Definition
 const progressReportSchema = new Schema({
     student: {
         type: Schema.Types.ObjectId,
@@ -16,10 +17,12 @@ const progressReportSchema = new Schema({
         score: {
             type: Number,
             required: true,
+            min: 0, // Minimum score
         },
         maxScore: {
             type: Number,
             required: true,
+            min: 0, // Minimum max score
         },
         date: {
             type: Date,
@@ -46,6 +49,10 @@ const progressReportSchema = new Schema({
         max: 100,
         default: 0,
     },
+    comments: {
+        type: String,
+        trim: true, // Optional feedback or notes regarding the progress report
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -65,4 +72,3 @@ progressReportSchema.pre('save', function(next) {
 const ProgressReport = mongoose.model('ProgressReport', progressReportSchema);
 
 module.exports = ProgressReport;
-
