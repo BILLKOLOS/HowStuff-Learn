@@ -41,6 +41,10 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User', // Reference to child accounts
     }],
+    parent: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the parent account
+    },
     createdAt: {
         type: Date,
         default: Date.now, // Timestamp for account creation
@@ -87,7 +91,6 @@ const userSchema = new Schema({
         type: Boolean,
         default: true, // Track if the user account is active
     },
-    // New fields
     notifications: [{
         message: { type: String, required: true },
         isRead: { type: Boolean, default: false },
