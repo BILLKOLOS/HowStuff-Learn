@@ -87,6 +87,12 @@ const userSchema = new Schema({
         type: Boolean,
         default: true, // Track if the user account is active
     },
+    // New fields
+    notifications: [{
+        message: { type: String, required: true },
+        isRead: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now }
+    }]
 });
 
 // Hash password before saving
