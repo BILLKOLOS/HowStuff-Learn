@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Activity Schema Definition
 const activitySchema = new Schema({
     title: {
         type: String,
@@ -24,10 +25,16 @@ const activitySchema = new Schema({
     duration: {
         type: Number, // Duration in minutes
         required: true,
+        min: 1, // Minimum duration should be at least 1 minute
     },
     learningObjectives: {
         type: [String], // Array of learning objectives for the activity
         default: [],
+    },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User', // Reference to the user who created the activity
+        required: true,
     },
     createdAt: {
         type: Date,
@@ -48,4 +55,3 @@ activitySchema.pre('save', function(next) {
 const Activity = mongoose.model('Activity', activitySchema);
 
 module.exports = Activity;
-
