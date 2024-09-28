@@ -11,10 +11,11 @@ exports.register = async (req, res) => {
     const { username, email, password } = req.body;
 
     try {
+        const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
         const newUser = new User({
             username,
             email,
-            password,
+            password: hashedPassword,
         });
 
         await newUser.save();
@@ -34,7 +35,7 @@ exports.login = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const isMatch = await user.comparePassword(password);
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -52,10 +53,11 @@ exports.createChildAccount = async (req, res) => {
     const userId = req.user.id; // Parent's user ID
 
     try {
+        const hashedPassword = await bcrypt.hash(password, 10); // Hash the child's password
         const newChild = new User({
             username,
             email,
-            password,
+            password: hashedPassword,
             role: 'child', // Set role as child
         });
 
@@ -226,16 +228,14 @@ exports.getFeedback = async (req, res) => {
         res.status(500).json({ message: 'Error retrieving feedback', error: error.message });
     }
 };
-
 // Set learning goals
-const User = require('../models/User');
 exports.setLearningGoals = async (req, res) => {
     const { goals } = req.body;
     const userId = req.user.id;
 
     try {
         const user = await User.findById(userId);
-        user.learningGoals = goals;
+        user.learningGoals = goals; // Assuming learningGoals is a field in the User model
         await user.save();
         res.status(200).json({ message: 'Learning goals set successfully', goals });
     } catch (error) {
@@ -267,9 +267,9 @@ exports.logSelfReflection = async (req, res) => {
         res.status(200).json({ message: 'Self-reflection logged successfully', reflection });
     } catch (error) {
         res.status(500).json({ message: 'Error logging self-reflection', error: error.message });
-
     }
 };
+
 // Search resources
 exports.searchResources = async (req, res) => {
     const { query } = req.body; // Search query provided by the user
@@ -336,4 +336,3 @@ exports.deleteChildAccount = async (req, res) => {
         res.status(500).json({ message: 'Error deleting child account', error: error.message });
     }
 };
-
