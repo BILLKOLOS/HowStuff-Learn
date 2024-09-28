@@ -95,7 +95,53 @@ const userSchema = new Schema({
         message: { type: String, required: true },
         isRead: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now }
-    }]
+    }],
+    // New fields added based on suggestions
+    profileCompleteness: {
+        type: Number,
+        default: 0, // Percentage of profile completeness
+    },
+    preferences: {
+        notificationSettings: {
+            email: { type: Boolean, default: true },
+            sms: { type: Boolean, default: false },
+        },
+        contentVisibility: {
+            subjectPreferences: [{ type: String }], // Array of preferred subjects
+        },
+    },
+    twoFactorAuth: {
+        isEnabled: { type: Boolean, default: false },
+        phoneNumber: {
+            type: String,
+            trim: true,
+            validate: {
+                validator: function(v) {
+                    return /^\+?\d{10,15}$/.test(v); // Basic phone number regex
+                },
+                message: props => `${props.value} is not a valid phone number for 2FA!`
+            }
+        },
+    },
+    accountRecovery: {
+        securityQuestions: [{
+            question: { type: String, required: true },
+            answer: { type: String, required: true },
+        }],
+        alternateEmail: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^\S+@\S+\.\S+$/.test(v); // Basic email regex validation
+                },
+                message: props => `${props.value} is not a valid email!`
+            }
+        },
+    },
+    activityLog: [{
+        action: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+    }],
 });
 
 // Hash password before saving
