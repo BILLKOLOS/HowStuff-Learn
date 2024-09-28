@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Payment Schema Definition
 const paymentSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
@@ -10,6 +11,7 @@ const paymentSchema = new Schema({
     amount: {
         type: Number,
         required: true,
+        min: 0, // Ensure the amount is not negative
     },
     paymentMethod: {
         type: String,
@@ -42,7 +44,14 @@ paymentSchema.pre('save', function(next) {
     next();
 });
 
+// Middleware to validate payment amount
+paymentSchema.pre('save', function(next) {
+    if (this.amount < 0) {
+        return next(new Error('Payment amount must be a positive value.'));
+    }
+    next();
+});
+
 const Payment = mongoose.model('Payment', paymentSchema);
 
 module.exports = Payment;
-
