@@ -1,0 +1,52 @@
+OpenAI API - For generating educational content and personalized learning recommendations.
+
+GitHub: openai/openai-python
+
+
+
+2. Elasticsearch - For searching educational content and delivering step-by-step explanations.
+
+GitHub: elastic/elasticsearch
+
+
+
+3. Crawl4AI - For extracting and indexing external educational content (e.g., web scraping).
+
+GitHub: unclecode/crawl4ai
+
+
+
+4. DeepSpeech - Speech-to-text for virtual lectures.
+
+GitHub: mozilla/DeepSpeech
+
+
+
+5. Surprise - Collaborative filtering-based content recommendations (quizzes, topics, projects).
+
+GitHub: NicolasHug/Surprise
+
+
+
+6. Haystack - Question-answering systems and search.
+
+GitHub: deepset-ai/haystack
+
+
+
+7. FastAPI - Efficient API framework for integrating AI models.
+
+GitHub: tiangolo/fastapi
+
+
+
+8. PyTorch - Custom AI models for adaptive learning paths.
+
+GitHub: pytorch/pytorch
+
+
+
+9. Google Analytics - For tracking user interactions and adapting content based on analytics.
+
+
+10. IBM Watson - Analyzing user assessments and responses to suggest tailored content.
