@@ -48,6 +48,10 @@ const lectureSchema = new Schema({
             type: String,
             trim: true,
         },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
     }],
     createdAt: {
         type: Date,
@@ -57,6 +61,16 @@ const lectureSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    resources: [{
+        type: String, // Links or titles to resources related to the lecture
+    }],
+    prerequisites: [{
+        type: String, // List of prerequisites for attending the lecture
+    }],
+    isActive: {
+        type: Boolean,
+        default: true, // Indicates if the lecture is currently active
+    },
 });
 
 // Middleware to update `updatedAt` before saving
@@ -65,6 +79,8 @@ lectureSchema.pre('save', function(next) {
     next();
 });
 
+// Create Lecture model
 const Lecture = mongoose.model('Lecture', lectureSchema);
 
+// Export the Lecture model
 module.exports = Lecture;

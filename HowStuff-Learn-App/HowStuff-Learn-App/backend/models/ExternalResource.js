@@ -37,6 +37,13 @@ const externalResourceSchema = new Schema({
         type: Date,
         default: Date.now, // Timestamp for when the resource was last updated
     },
+    // New field for user ratings or feedback on the resource
+    rating: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: 3, // Default rating
+    },
 });
 
 // Middleware to update `updatedAt` before saving

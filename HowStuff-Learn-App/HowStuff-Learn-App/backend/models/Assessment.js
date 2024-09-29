@@ -35,7 +35,7 @@ const assessmentSchema = new Schema({
         type: String,
         required: true,
     },
-    questions: [questionSchema],
+    questions: [questionSchema], // Array of question objects
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: 'User', // Reference to the user who created the assessment
@@ -65,6 +65,10 @@ const assessmentSchema = new Schema({
         required: true,
         enum: ['easy', 'medium', 'hard'], // Difficulty levels for assessments
     },
+    // New field for tags to enhance searchability
+    tags: [{
+        type: String, // Array of tags for better categorization
+    }],
 });
 
 // Middleware to update `updatedAt` before saving
