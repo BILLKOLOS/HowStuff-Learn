@@ -8,6 +8,12 @@ exports.collectFeedback = async (req, res) => {
     try {
         const { userId, lectureId, feedbackDetails } = req.body;
 
+        // Check if user has already submitted feedback for the lecture
+        const existingFeedback = await Feedback.findOne({ userId, lectureId });
+        if (existingFeedback) {
+            return res.status(400).json({ message: 'Feedback already submitted for this lecture' });
+        }
+
         // Create feedback entry in the database
         const feedback = await Feedback.create({
             userId,
@@ -34,7 +40,7 @@ exports.collectFeedback = async (req, res) => {
 exports.getLectureFeedback = async (req, res) => {
     try {
         const { lectureId } = req.params;
-        const feedback = await Feedback.find({ lectureId });
+        const feedback = await Feedback.find({ lectureId }).populate('userId', 'name email');
 
         res.status(200).json(feedback);
     } catch (error) {
@@ -63,6 +69,25 @@ exports.getFeedbackSummary = async (req, res) => {
     }
 };
 
+// Update feedback (optional)
+exports.updateFeedback = async (req, res) => {
+    try {
+        const { feedbackId } = req.params;
+        const { rating, comments } = req.body;
+
+        // Find and update the feedback record
+        const feedback = await Feedback.findByIdAndUpdate(feedbackId, { rating, comments }, { new: true });
+        if (!feedback) {
+            return res.status(404).json({ message: 'Feedback not found' });
+        }
+
+        res.status(200).json({ message: 'Feedback updated successfully', feedback });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to update feedback', error });
+    }
+};
+
 // Delete feedback (optional)
 exports.deleteFeedback = async (req, res) => {
     try {
@@ -74,10 +99,12 @@ exports.deleteFeedback = async (req, res) => {
             return res.status(404).json({ message: 'Feedback not found' });
         }
 
+        // Optionally update lecture feedback count
+        await Lecture.findByIdAndUpdate(feedback.lectureId, { $inc: { feedbackCount: -1 } });
+
         res.status(200).json({ message: 'Feedback deleted successfully', feedback });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Failed to delete feedback', error });
     }
 };
-
