@@ -1,9 +1,20 @@
-// dashboardController.js
-const Lecture = require('../models/lectureModel');
-const Quiz = require('../models/quizModel');
-const User = require('../models/userModel');
-const Resource = require('../models/resourceModel');
-const Gamification = require('../models/gamificationModel'); // For badges and rewards
+const Lecture = require('../models/Lecture'); // Updated model name
+const Quiz = require('../models/Quiz'); // Updated model name
+const User = require('../models/User'); // Updated model name
+const Resource = require('../models/Resource'); // Updated model name
+const Gamification = require('../models/Gamification'); // Updated model name
+const Activity = require('../models/Activity'); // For user activity feed
+const Notification = require('../models/Notification'); // For notifications (if implemented)
+
+// Fetch user activity for the activity feed
+const getUserActivityFeed = async (userId) => {
+    return await Activity.find({ userId }).sort({ createdAt: -1 }).limit(5); // Adjust the model and limit as needed
+};
+
+// Fetch user notifications
+const getUserNotifications = async (userId) => {
+    return await Notification.find({ userId }).sort({ createdAt: -1 }).limit(5); // Fetch the last 5 notifications
+};
 
 // Controller to get the dashboard data
 exports.getDashboard = async (req, res) => {
@@ -32,16 +43,24 @@ exports.getDashboard = async (req, res) => {
         // Fetch gamification status (badges earned)
         const gamificationStatus = await Gamification.findOne({ userId });
 
+        // Fetch user activity feed
+        const activityFeed = await getUserActivityFeed(userId);
+
+        // Fetch user notifications
+        const notifications = await getUserNotifications(userId);
+
         // Send the collected data to the client
         res.status(200).json({
             upcomingLectures,
             recentQuizzes,
             progress: user.progress,
             suggestedResources,
-            gamificationStatus
+            gamificationStatus,
+            activityFeed,
+            notifications,
         });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Failed to load dashboard data' });
+        res.status(500).json({ message: 'Failed to load dashboard data', error: err.message });
     }
 };
