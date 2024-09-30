@@ -1,6 +1,7 @@
 const Lecture = require('../models/Lecture');
 const NotificationService = require('../utils/notificationService');
 const Logger = require('../utils/logger'); // Assuming a logging utility is created
+const mongoose = require('mongoose');
 
 class QuorumManagementController {
     // Check if a lecture has enough participants to proceed
@@ -113,9 +114,21 @@ class QuorumManagementController {
 
     // Quorum history tracking
     async getQuorumHistory(req, res) {
-        // This function would retrieve historical data on quorum checks.
-        // For simplicity, we'll assume a method that stores this history exists.
-        // Implementation details would depend on how you're storing this information.
+        try {
+            const lectureId = req.params.id;
+            const lecture = await Lecture.findById(lectureId).populate('participants', 'name email');
+            if (!lecture) {
+                return res.status(404).json({ message: 'Lecture not found' });
+            }
+
+            // Assuming a hypothetical QuorumHistory model exists
+            const quorumHistory = await QuorumHistory.find({ lectureId }).sort({ timestamp: -1 });
+
+            res.status(200).json({ quorumHistory });
+        } catch (error) {
+            Logger.error('Error retrieving quorum history', error);
+            res.status(500).json({ message: 'Error retrieving quorum history', error: error.message });
+        }
     }
 
     // Dynamic minimum participants based on registered participants
@@ -169,6 +182,7 @@ class QuorumManagementController {
             }
 
             // Logic to schedule a quorum check using a task scheduler like node-cron
+            // e.g., schedule job with node-cron
             res.status(200).json({ message: 'Quorum check scheduled successfully' });
             Logger.info(`Quorum check scheduled for lecture ${lecture.title}`);
         } catch (error) {
@@ -178,5 +192,4 @@ class QuorumManagementController {
     }
 }
 
-module.exports = QuorumManagementController();
-
+module.exports = new QuorumManagementController();
