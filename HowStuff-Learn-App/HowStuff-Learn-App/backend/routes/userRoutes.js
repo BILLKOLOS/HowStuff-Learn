@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
+const progressController = require('../controllers/progressController');
 
 // User registration
 router.post('/register', userController.register); // Route for registering a new user
@@ -35,5 +36,13 @@ router.post('/search/history', authMiddleware.verifyToken, userController.saveSe
 
 // Retrieve the user's search history
 router.get('/search/history', authMiddleware.verifyToken, userController.getSearchHistory);
+
+// Progress management routes
+router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress); // Update user progress
+router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport); // Get progress report
+router.post('/progress/goals', authMiddleware.verifyToken, progressController.setLearningGoals); // Set learning goals
+router.get('/progress/details/:userId', authMiddleware.verifyToken, progressController.getDetailedProgressReport); // Get detailed progress report
+router.get('/progress/behavior/:userId', authMiddleware.verifyToken, progressController.analyzeUserBehavior); // Analyze user behavior
+router.get('/progress/historical/:userId', authMiddleware.verifyToken, progressController.getHistoricalProgressTrends); // Get historical progress trends
 
 module.exports = router;
