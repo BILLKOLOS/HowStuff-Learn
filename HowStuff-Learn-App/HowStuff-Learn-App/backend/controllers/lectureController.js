@@ -1,5 +1,3 @@
-// controllers/lectureController.js
-
 const Lecture = require('../models/Lecture');
 const User = require('../models/User');
 const Question = require('../models/Question');
@@ -11,14 +9,17 @@ const { sendEmailNotification } = require('../utils/emailService');
 // Create a new lecture
 exports.createLecture = async (req, res) => {
     try {
-        const { title, description, resourcePersonId } = req.body;
+        const { title, description, resourcePersonId, scheduledTime, quorum } = req.body;
 
         const newLecture = new Lecture({
             title,
             description,
             resourcePerson: resourcePersonId,
-            scheduledTime: null,
+            scheduledTime,
+            quorum,
             status: 'upcoming',
+            attendees: [],
+            isCompleted: false,
         });
 
         await newLecture.save();
@@ -34,9 +35,7 @@ exports.scheduleLecture = async (req, res) => {
         const { lectureId, scheduledTime } = req.body;
 
         const lecture = await Lecture.findById(lectureId);
-        if (!lecture) {
-            return res.status(404).json({ message: 'Lecture not found' });
-        }
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
 
         lecture.scheduledTime = scheduledTime;
         lecture.status = 'scheduled';
@@ -54,9 +53,7 @@ exports.startLiveLecture = async (req, res) => {
         const lectureId = req.params.lectureId;
 
         const lecture = await Lecture.findById(lectureId);
-        if (!lecture) {
-            return res.status(404).json({ message: 'Lecture not found' });
-        }
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
 
         lecture.status = 'live';
         await lecture.save();
@@ -78,9 +75,7 @@ exports.joinLecture = async (req, res) => {
         const userId = req.user.id;
 
         const lecture = await Lecture.findById(lectureId);
-        if (!lecture) {
-            return res.status(404).json({ message: 'Lecture not found' });
-        }
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
 
         // Check if user has already joined the lecture
         if (lecture.attendees.includes(userId)) {
@@ -93,6 +88,7 @@ exports.joinLecture = async (req, res) => {
 
         // Notify resource person if quorum is reached
         if (lecture.attendees.length >= lecture.quorum) {
+            const resourcePerson = await User.findById(lecture.resourcePerson);
             sendEmailNotification(resourcePerson.email, `Quorum met for your lecture "${lecture.title}"`);
         }
 
@@ -108,9 +104,7 @@ exports.completeLecture = async (req, res) => {
         const lectureId = req.params.lectureId;
 
         const lecture = await Lecture.findById(lectureId);
-        if (!lecture) {
-            return res.status(404).json({ message: 'Lecture not found' });
-        }
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
 
         lecture.isCompleted = true;
         await lecture.save();
@@ -127,9 +121,7 @@ exports.recordLecture = async (req, res) => {
         const { lectureId, recordingUrl } = req.body;
 
         const lecture = await Lecture.findById(lectureId);
-        if (!lecture) {
-            return res.status(404).json({ message: 'Lecture not found' });
-        }
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
 
         const newRecording = new LectureRecording({
             lecture: lectureId,
@@ -187,5 +179,44 @@ exports.getLecturesByResourcePerson = async (req, res) => {
         res.status(200).json({ lectures });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching lectures', error });
+    }
+};
+
+// Get all feedback for a lecture
+exports.getFeedbackForLecture = async (req, res) => {
+    try {
+        const lectureId = req.params.lectureId;
+        const feedbacks = await Feedback.find({ lecture: lectureId }).populate('user', 'name email');
+        res.status(200).json({ feedbacks });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching feedback', error });
+    }
+};
+
+// Get all polls for a lecture
+exports.getPollsForLecture = async (req, res) => {
+    try {
+        const lectureId = req.params.lectureId;
+        const polls = await Poll.find({ lecture: lectureId });
+        res.status(200).json({ polls });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching polls', error });
+    }
+};
+
+// Answer a poll
+exports.answerPoll = async (req, res) => {
+    try {
+        const { pollId, selectedOption } = req.body;
+
+        const poll = await Poll.findById(pollId);
+        if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+        poll.responses.push({ user: req.user.id, selectedOption });
+        await poll.save();
+
+        res.status(200).json({ message: 'Poll answered successfully', poll });
+    } catch (error) {
+        res.status(500).json({ message: 'Error answering poll', error });
     }
 };
