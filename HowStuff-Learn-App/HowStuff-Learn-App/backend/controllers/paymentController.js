@@ -1,18 +1,26 @@
 const Payment = require('../models/Payment');
 const Lecture = require('../models/Lecture');
 const User = require('../models/User');
-const paymentService = require('../utils/paymentService'); // Assume you have a payment service utility
-const notificationService = require('../utils/notificationService'); // For sending notifications
+const paymentService = require('../utils/paymentService'); // Utility for payment processing
+const notificationService = require('../utils/notificationService'); // Utility for notifications
 
 // Process a payment for a lecture using PayPal or MPESA
 exports.processPayment = async (req, res) => {
     try {
-        const { userId, lectureId, paymentDetails, paymentMethod } = req.body;
+        const { userId, lectureId, paymentDetails, paymentMethod, isParentalApprovalRequired } = req.body;
 
         // Validate payment details
         const isValidPayment = await paymentService.validatePayment(paymentDetails);
         if (!isValidPayment) {
             return res.status(400).json({ message: 'Invalid payment details' });
+        }
+
+        // Check for parental approval if required
+        if (isParentalApprovalRequired) {
+            const user = await User.findById(userId);
+            if (!user.parentApproved) {
+                return res.status(403).json({ message: 'Parental approval is required for this payment.' });
+            }
         }
 
         // Save payment to the database
@@ -125,4 +133,3 @@ const notifyRefundSuccess = async (userId, payment) => {
     const user = await User.findById(userId);
     await notificationService.sendRefundNotification(user.email, payment);
 };
-
