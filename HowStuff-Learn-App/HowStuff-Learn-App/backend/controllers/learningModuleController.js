@@ -15,10 +15,10 @@ exports.createLearningModule = async (req, res) => {
             grade,
             activities,
             prerequisites,
-            estimatedTime,  // New field to estimate time needed for the module
-            targetAudience,  // New field to specify the intended audience
+            estimatedTime,
+            targetAudience,
             creator: req.user.id,
-            createdAt: new Date(),  // Track creation date
+            createdAt: new Date(),
         });
 
         await newLearningModule.save();
@@ -35,14 +35,14 @@ exports.getLearningModules = async (req, res) => {
 
     if (subject) query.subject = subject;
     if (grade) query.grade = grade;
-    if (creatorId) query.creator = creatorId; // Filter by creator ID
+    if (creatorId) query.creator = creatorId;
 
     try {
         const totalModules = await LearningModule.countDocuments(query);
         const learningModules = await LearningModule.find(query)
             .skip((page - 1) * limit)
             .limit(Number(limit))
-            .sort({ createdAt: -1 });  // Sort by creation date descending
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             totalModules,
@@ -64,7 +64,6 @@ exports.updateLearningModule = async (req, res) => {
         const learningModule = await LearningModule.findById(moduleId);
         if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
 
-        // Update only if the creator matches
         if (learningModule.creator.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Unauthorized to update this learning module' });
         }
@@ -75,9 +74,9 @@ exports.updateLearningModule = async (req, res) => {
         learningModule.grade = grade;
         learningModule.activities = activities;
         learningModule.prerequisites = prerequisites;
-        learningModule.estimatedTime = estimatedTime;  // Update estimated time
-        learningModule.targetAudience = targetAudience;  // Update target audience
-        learningModule.updatedAt = new Date();  // Track last updated date
+        learningModule.estimatedTime = estimatedTime;
+        learningModule.targetAudience = targetAudience;
+        learningModule.updatedAt = new Date();
 
         await learningModule.save();
         res.status(200).json({ message: 'Learning module updated successfully', learningModule });
@@ -94,7 +93,6 @@ exports.deleteLearningModule = async (req, res) => {
         const learningModule = await LearningModule.findById(moduleId);
         if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
 
-        // Check if the user is the creator before deletion
         if (learningModule.creator.toString() !== req.user.id) {
             return res.status(403).json({ message: 'Unauthorized to delete this learning module' });
         }
@@ -139,7 +137,7 @@ exports.searchLearningModules = async (req, res) => {
     const { keyword, page = 1, limit = 10 } = req.query;
 
     try {
-        const regex = new RegExp(keyword, 'i'); // Case insensitive regex
+        const regex = new RegExp(keyword, 'i');
         const totalModules = await LearningModule.countDocuments({ title: regex });
         const learningModules = await LearningModule.find({ title: regex })
             .skip((page - 1) * limit)
@@ -233,3 +231,39 @@ exports.getComments = async (req, res) => {
     }
 };
 
+// Enroll a student in a learning module
+exports.enrollStudent = async (req, res) => {
+    const { moduleId } = req.params;
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId);
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        if (!learningModule.enrolledStudents.includes(req.user.id)) {
+            learningModule.enrolledStudents.push(req.user.id);
+            await learningModule.save();
+            res.status(200).json({ return res.status(400).json({ message: 'Already enrolled in this learning module' });
+        }
+
+        res.status(200).json({ message: 'Successfully enrolled in learning module', learningModule });
+    } catch (error) {
+        res.status(500).json({ message: 'Error enrolling in learning module', error: error.message });
+    }
+};
+
+// Get enrolled students in a learning module
+exports.getEnrolledStudents = async (req, res) => {
+    const { moduleId } = req.params;
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId).select('enrolledStudents');
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        const students = await User.find({ _id: { $in: learningModule.enrolledStudents } });
+        res.status(200).json({ enrolledStudents: students });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving enrolled students', error: error.message });
+    }
+};: 'Successfully enrolled in learning module', learningModule });
+        } else {
+            res.status(400).json({ message: '
