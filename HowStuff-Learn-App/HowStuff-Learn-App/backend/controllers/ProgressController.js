@@ -69,9 +69,9 @@ exports.analyzeUserBehavior = async (req, res) => {
 
     try {
         const progressData = await Progress.find({ userId });
-        // Add analysis logic here based on the collected data
-        // For example, analyzing completion rates and scores
-        res.status(200).json({ message: 'User behavior analysis complete', data: progressData });
+        // Analysis logic (e.g., completion rates, scores) can be added here
+        const analysisResults = analyzePatterns(progressData); // Placeholder for analysis function
+        res.status(200).json({ message: 'User behavior analysis complete', data: analysisResults });
     } catch (error) {
         res.status(500).json({ error: 'Failed to analyze user behavior', details: error.message });
     }
@@ -89,3 +89,8 @@ exports.getHistoricalProgressTrends = async (req, res) => {
     }
 };
 
+// Helper function to analyze user behavior patterns (to be implemented)
+const analyzePatterns = (progressData) => {
+    // Implement your analysis logic here
+    return progressData; // Placeholder return value
+};
