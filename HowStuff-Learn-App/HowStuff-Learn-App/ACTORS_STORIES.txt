@@ -1,0 +1,212 @@
+User Story for the "HowStuff & Learn" App
+
+App Objectives
+
+Offer personalized and immersive learning experiences from kindergarten to PhD levels.
+
+Integrate advanced technologies (AR, VR, AI) for interactive, engaging education.
+
+Cater to various educational challenges with support for Competency-Based Curriculum (CBC), skill development, and subject mastery.
+
+Enable real-time feedback, progress tracking, collaboration, and parental monitoring.
+
+
+Actors
+
+1. Student: A learner engaging with educational materials, assessments, and progress tracking.
+
+
+2. Parent/Guardian: Monitors younger students' progress, assists with goal setting, and receives progress reports.
+
+
+3. Teacher: Creates and manages learning modules, assessments, and virtual lectures.
+
+
+4. Administrator: Oversees the system, manages user access, and handles content curation.
+
+
+5. Resource Person/Expert: Offers specialized knowledge through guest lectures, course materials, and external resources.
+
+
+6. Guest User: Explores the app’s features without registering.
+
+
+7. System: Automates content recommendations, reminders, analytics, and progress syncing.
+
+
+
+Controllers and Actor Actions
+
+1. authController.js
+
+Actors Involved: Student, Parent, Teacher, Administrator, Guest
+
+Function: Handles user registration, login, and authentication for different roles. Students can register individually or with linked parent accounts.
+
+
+2. dashboardController.js
+
+Actors Involved: Student, Parent, Teacher, Administrator
+
+Function: Provides personalized dashboards displaying goals, learning paths, course content, feedback, and progress reports.
+
+
+3. learningPathController.js
+
+Actors Involved: Student, Teacher, Parent
+
+Function: Manages custom learning paths based on student goals and interests. Parents and teachers can modify paths for younger learners.
+
+
+4. learningModuleController.js
+
+Actors Involved: Student, Teacher
+
+Function: Delivers subject modules across various educational levels. Teachers create or assign modules, while students interact with the content.
+
+
+5. lectureController.js
+
+Actors Involved: Student, Teacher, Resource Person
+
+Function: Facilitates live or recorded lectures. Students can attend, ask questions, and provide feedback.
+
+
+6. lectureFeedbackController.js
+
+Actors Involved: Student, Teacher
+
+Function: Collects feedback on lectures, improving future content delivery.
+
+
+7. quorumManagementController.js
+
+Actors Involved: System, Teacher
+
+Function: Tracks student attendance for lectures, notifying teachers of quorum status.
+
+
+8. paymentController.js
+
+Actors Involved: Student, Parent, Administrator
+
+Function: Manages subscription fees, course payments, and parental approval for child-related expenses.
+
+
+9. progressController.js
+
+Actors Involved: Student, Parent, Teacher
+
+Function: Monitors learning progress, generating reports that parents and teachers can review. Provides tailored recommendations for improvement.
+
+
+10. studyGroupController.js
+
+Actors Involved: Student, Teacher
+
+Function: Organizes collaborative learning through study groups, allowing students to participate in discussions and projects.
+
+
+11. resourceController.js
+
+Actors Involved: Student, Teacher, Resource Person
+
+Function: Offers external educational resources from OpenAI, Wikipedia, and Khan Academy. Teachers and resource persons curate relevant material.
+
+
+12. VirtualLectureController.js
+
+Actors Involved: Student, Teacher, Resource Person
+
+Function: Schedules and facilitates virtual classes. Students can attend real-time sessions and access recordings.
+
+
+13. feedbackController.js
+
+Actors Involved: Student, Teacher, Parent
+
+Function: Collects general feedback on the learning experience, curriculum, and app functionality, ensuring continuous improvement.
+
+
+14. assessmentController.js
+
+Actors Involved: Student, Teacher
+
+Function: Manages quizzes, exams, and other assessments for tracking subject mastery. Students take assessments, and teachers review their performance.
+
+
+15. parentalTracking.js
+
+Actors Involved: Parent, Teacher, Student
+
+Function: Allows parents to track the child’s academic progress, set learning goals, and receive notifications regarding assessments and progress reports.
+
+
+16. projectController.js
+
+Actors Involved: Student, Teacher
+
+Function: Manages individual or group projects, tracking progress and submissions for various assignments.
+
+
+17. searchController.js
+
+Actors Involved: Student, Teacher, Parent
+
+Function: Allows users to search for content, lectures, projects, or resources based on keywords or subjects, powered by Elasticsearch.
+
+
+18. contentController.js
+
+Actors Involved: Teacher, Resource Person, Administrator
+
+Function: Manages educational content creation, curation, and approval, ensuring quality control for lessons and modules.
+
+
+19. InteractiveContentController.js
+
+Actors Involved: Student, Teacher
+
+Function: Provides interactive learning experiences (AR/VR) to engage students with virtual simulations, labs, and animated tutorials.
+
+
+20. analyticsController.js
+
+Actors Involved: System, Administrator
+
+Function: Tracks user engagement, learning trends, and system performance, providing insights to improve educational outcomes.
+
+
+21. mentorshipController.js
+
+Actors Involved: Student, Mentor, Teacher
+
+Function: Connects students with mentors for career guidance, skill development, and academic support.
+
+
+22. SkillController.js
+
+Actors Involved: Student, Teacher
+
+Function: Focuses on skill-based learning, tracking progress and offering resources to improve practical skills.
+
+
+23. SubjectController.js
+
+Actors Involved: Student, Teacher
+
+Function: Handles subject selection and enrollment, allowing students to choose subjects and track their mastery levels over time.
+
+
+24. atHomeActivitiesController.js
+
+Actors Involved: Student, Parent
+
+Function: Provides additional learning activities for students to engage with at home, allowing parents to assist in reinforcing concepts.
+
+
+25. communityController.js
+
+Actors Involved: Student, Teacher
+
+Function: Fosters peer learning through community forums, enabling discussions on subjects, projects, and other educational topics.
