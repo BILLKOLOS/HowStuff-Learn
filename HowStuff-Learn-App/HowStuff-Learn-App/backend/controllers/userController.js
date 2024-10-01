@@ -116,6 +116,25 @@ exports.deleteAccount = async (req, res) => {
         res.status(500).json({ message: 'Error deleting account', error: error.message });
     }
 };
+// Update Profile and Password
+exports.updateProfile = async (req, res) => {
+    const { username, email, newPassword } = req.body;
+    const userId = req.user.id;
+    try {
+        const user = await User.findById(userId);
+        if (newPassword) {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            user.password = hashedPassword;
+        }
+        user.username = username || user.username;
+        user.email = email || user.email;
+        await user.save();
+
+        res.status(200).json({ message: 'Profile updated successfully', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating profile', error: error.message });
+    }
+};
 
 // Create a formative assessment
 exports.createAssessment = async (req, res) => {
