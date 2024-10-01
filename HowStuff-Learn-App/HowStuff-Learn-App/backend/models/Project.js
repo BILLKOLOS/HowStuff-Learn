@@ -54,6 +54,50 @@ const projectSchema = new Schema({
         enum: ['Low', 'Medium', 'High'], // Priority levels for the project
         default: 'Medium', // Default priority is medium
     },
+    learningGoals: [{
+        type: Schema.Types.ObjectId,
+        ref: 'LearningGoal', // Reference to the related learning goals
+    }],
+    projectType: {
+        type: String,
+        enum: ['research', 'group', 'individual'],
+        required: true,
+    },
+    tags: [{
+        type: String,
+        trim: true, // Remove whitespace from both ends
+    }],
+    comments: [{
+        userId: { type: Schema.Types.ObjectId, ref: 'User' }, // User who commented
+        text: { type: String, required: true }, // Comment text
+        createdAt: { type: Date, default: Date.now }, // Timestamp of the comment
+    }],
+    progress: {
+        percentage: { type: Number, min: 0, max: 100, default: 0 }, // Project completion percentage
+        statusLog: [{
+            status: { type: String }, // Status update
+            createdAt: { type: Date, default: Date.now }, // Timestamp of the status update
+        }],
+    },
+    externalResources: [{
+        title: { type: String, required: true }, // Title of the external resource
+        url: { 
+            type: String,
+            required: true,
+            validate: {
+                validator: function(v) {
+                    return /^https?:\/\/.+\..+/i.test(v); // Simple URL validation
+                },
+                message: props => `${props.value} is not a valid URL!`
+            },
+        },
+    }],
+    feedback: [{
+        userId: { type: Schema.Types.ObjectId, ref: 'User' }, // User providing feedback
+        rating: { type: Number, min: 1, max: 5 }, // Rating for the project
+        comment: { type: String }, // Feedback comment
+        createdAt: { type: Date, default: Date.now }, // Timestamp of the feedback
+    }],
 });
 
 // Middleware to update `updatedAt` before saving
