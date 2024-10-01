@@ -1,4 +1,7 @@
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog'); // Import the AuditLog model
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const TokenBlacklist = require('../models/TokenBlacklist');
@@ -31,6 +34,9 @@ exports.register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = new User({ email, password: hashedPassword, role });
         await user.save();
+
+        // Log the registration
+        await logAudit('User Registered', user._id, `User ${email} registered`);
 
         // Send verification email
         sendVerificationEmail(user);
@@ -79,6 +85,9 @@ exports.login = async (req, res) => {
 
         const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
         const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' });
+
+        // Log the login
+        await logAudit('User Login', user._id, `User ${email} logged in`);
 
         res.status(200).json({ message: 'Login successful', token, refreshToken, role: user.role });
     } catch (error) {
@@ -129,6 +138,9 @@ exports.forgotPassword = async (req, res) => {
 
         await sendResetEmail(user, resetToken);
         res.status(200).json({ message: 'Reset token sent to email' });
+
+        // Log the password reset request
+        await logAudit('Password Reset Requested', user._id, `Password reset requested for ${email}`);
     } catch (error) {
         res.status(500).json({ message: 'Error sending reset token', error: error.message });
     }
@@ -151,6 +163,9 @@ exports.resetPassword = async (req, res) => {
         await user.save();
 
         res.status(200).json({ message: 'Password reset successfully' });
+
+        // Log the password reset
+        await logAudit('Password Reset', user._id, `Password reset successfully for ${user.email}`);
     } catch (error) {
         res.status(500).json({ message: 'Error resetting password', error: error.message });
     }
@@ -167,6 +182,9 @@ exports.verifyEmail = async (req, res) => {
         await user.save();
 
         res.status(200).json({ message: 'Email verified successfully' });
+
+        // Log the email verification
+        await logAudit('Email Verified', user._id, `Email verified for ${user.email}`);
     } catch (error) {
         res.status(500).json({ message: 'Error verifying email', error: error.message });
     }
@@ -201,6 +219,7 @@ exports.verifyTwoFactorAuth = async (req, res) => {
     await user.save();
     res.status(200).json({ message: '2FA verified successfully' });
 };
+
 // Email Change Request
 exports.requestEmailChange = async (req, res) => {
     const { userId, newEmail } = req.body;
@@ -218,74 +237,73 @@ exports.requestEmailChange = async (req, res) => {
         user.emailChangeToken = emailChangeToken;
         user.newEmail = newEmail;
         user.emailChangeExpires = Date.now() + 3600000; // 1 hour
-        await user.save();
-
-        // Send verification email
+        // Send email verification for the new email
         await sendEmailChangeVerification(user.newEmail, emailChangeToken);
+        res.status(200).json({ message: 'Verification email sent to the new email address.' });
 
-        res.status(200).json({ message: 'Email change request initiated. Please verify your new email.' });
+        // Log the email change request
+        await logAudit('Email Change Requested', user._id, `Email change requested from ${user.email} to ${user.newEmail}`);
     } catch (error) {
-        res.status(500).json({ message: 'Error processing email change request', error: error.message });
+        res.status(500).json({ message: 'Error requesting email change', error: error.message });
     }
 };
 
-// Verify New Email
-exports.verifyEmailChange = async (req, res) => {
+// Confirm Email Change
+exports.confirmEmailChange = async (req, res) => {
     const { token } = req.params;
     try {
         const user = await User.findOne({
             emailChangeToken: token,
-            emailChangeExpires: { $gt: Date.now() }
+            emailChangeExpires: { $gt: Date.now() },
         });
         if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
 
-        user.email = user.newEmail;
-        user.newEmail = undefined; // Clear the new email
-        user.emailChangeToken = undefined; // Clear the token
-        user.emailChangeExpires = undefined; // Clear the expiry
+        user.email = user.newEmail; // Update the user's email
+        user.emailChangeToken = undefined;
+        user.newEmail = undefined;
+        user.emailChangeExpires = undefined;
         await user.save();
 
         res.status(200).json({ message: 'Email changed successfully' });
+
+        // Log the email change
+        await logAudit('Email Changed', user._id, `Email changed to ${user.email}`);
     } catch (error) {
-        res.status(500).json({ message: 'Error verifying email change', error: error.message });
+        res.status(500).json({ message: 'Error confirming email change', error: error.message });
     }
 };
 
-// Utility Function to Send Email Change Verification Email
-const sendEmailChangeVerification = async (newEmail, token) => {
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD
-        }
-    });
-
-    const mailOptions = {
-        to: newEmail,
-        from: process.env.EMAIL,
-        subject: 'Email Change Verification',
-        text: `Please verify your email change by clicking on the following link: ${process.env.APP_URL}/verify-email-change/${token}`
-    };
-
-    await transporter.sendMail(mailOptions);
-};
 
 // Utility Functions
+const logAudit = async (action, userId, description) => {
+    const auditLog = new AuditLog({ action, userId, description, timestamp: new Date() });
+    await auditLog.save();
+};
+
+const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+};
+
+const generate2FACode = () => {
+    return crypto.randomBytes(3).toString('hex'); // Generates a simple 6-digit hex code
+};
+
 const sendVerificationEmail = async (user) => {
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: 'Gmail', // Use your email provider
         auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD
-        }
+            user: process.env.EMAIL_USER, // Your email
+            pass: process.env.EMAIL_PASS, // Your email password
+        },
     });
 
     const mailOptions = {
+        from: process.env.EMAIL_USER,
         to: user.email,
-        from: process.env.EMAIL,
         subject: 'Email Verification',
-        text: `Please verify your email by clicking on the following link: ${process.env.APP_URL}/verify-email/${user._id}`
+        text: `Please verify your email by clicking the link: 
+        http://yourdomain.com/verify/${user.verificationToken}`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -293,33 +311,61 @@ const sendVerificationEmail = async (user) => {
 
 const sendResetEmail = async (user, resetToken) => {
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: 'Gmail',
         auth: {
-            user: process.env.EMAIL,
-            pass: process.env.PASSWORD
-        }
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
     });
 
     const mailOptions = {
+        from: process.env.EMAIL_USER,
         to: user.email,
-        from: process.env.EMAIL,
         subject: 'Password Reset',
-        text: `Please use the following token to reset your password: ${resetToken}`
+        text: `To reset your password, click the following link: 
+        http://yourdomain.com/reset/${resetToken}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+};
+
+const send2FACode = async (email, code) => {
+    const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Your 2FA Code',
+        text: `Your 2FA code is: ${code}`,
+    };
+
+    await transporter.sendMail(mailOptions);
+};
+
+const sendEmailChangeVerification = async (newEmail, token) => {
+    const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: newEmail,
+        subject: 'Verify Your New Email Address',
+        text: `To confirm your email change, please click the link: 
+        http://yourdomain.com/confirm-email/${token}`,
     };
 
     await transporter.sendMail(mailOptions);
 };
 
 
-const send2FACode = (email, code) => {
-    // Implement sending the 2FA code via email or SMS
-};
-
-const generate2FACode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
-};
-
-const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-};
