@@ -219,7 +219,65 @@ exports.viewLearningGoals = async (req, res) => {
         res.status(500).json({ message: 'Error retrieving learning goals', error: error.message });
     }
 };
+// View child's progress
+exports.viewChildProgress = async (req, res) => {
+    const { childId } = req.params;
+    try {
+        const childProgress = await Progress.find({ userId: childId }).populate('assessmentId');
+        res.status(200).json({ message: 'Child progress retrieved successfully', progress: childProgress });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving child progress', error: error.message });
+    }
+};
 
+// Get personalized learning recommendations
+exports.getLearningRecommendations = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await User.findById(userId);
+        const recommendations = await ResourceService.getRecommendations(user.learningGoals, user.progress);
+        res.status(200).json({ message: 'Learning recommendations retrieved successfully', recommendations });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving learning recommendations', error: error.message });
+    }
+};
+
+// Track user achievements
+exports.getAchievements = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const user = await User.findById(userId).populate('achievements');
+        res.status(200).json({ message: 'Achievements retrieved successfully', achievements: user.achievements });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving achievements', error: error.message });
+    }
+};
+
+// Send user notifications
+exports.sendNotification = async (req, res) => {
+    const { userId, message } = req.body;
+    try {
+        const user = await User.findById(userId);
+        user.notifications.push({ message, date: new Date() });
+        await user.save();
+        res.status(200).json({ message: 'Notification sent successfully', notifications: user.notifications });
+    } catch (error) {
+        res.status(500).json({ message: 'Error sending notification', error: error.message });
+    }
+};
+
+// Set parental control restrictions
+exports.setParentalControls = async (req, res) => {
+    const { childId, restrictions } = req.body;
+    try {
+        const child = await User.findById(childId);
+        child.parentalControls = restrictions;
+        await child.save();
+        res.status(200).json({ message: 'Parental controls set successfully', restrictions: child.parentalControls });
+    } catch (error) {
+        res.status(500).json({ message: 'Error setting parental controls', error: error.message });
+    }
+};
 // Log self-reflection
 exports.logSelfReflection = async (req, res) => {
     const { reflection } = req.body;
