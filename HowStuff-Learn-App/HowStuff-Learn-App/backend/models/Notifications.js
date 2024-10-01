@@ -24,6 +24,10 @@ const notificationSchema = new mongoose.Schema({
         type: Boolean,
         default: false // Indicates if the notification has been read
     },
+    acknowledged: {
+        type: Boolean,
+        default: false // Indicates if the notification has been acknowledged
+    },
     lectureId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Lecture' // Optional reference to a lecture
@@ -31,7 +35,23 @@ const notificationSchema = new mongoose.Schema({
     assignmentId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Assignment' // Optional reference to an assignment
-    }
+    },
+    priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'],
+        default: 'Medium', // Default priority is medium
+    },
+    targetAudience: {
+        type: String,
+        enum: ['Parent', 'Student', 'Both'],
+        required: true,
+    },
+    resourceLink: {
+        type: String, // Optional link to additional resources
+    },
+    expiresAt: {
+        type: Date, // Expiration date for the notification
+    },
 });
 
 // Create the Notification model
