@@ -39,6 +39,60 @@ const learningModuleSchema = new Schema({
     subject: {
         type: String, // Optional: Subject area this module covers (e.g., Science)
     },
+    estimatedDuration: {
+        type: Number, // Duration in minutes
+        required: true,
+    },
+    prerequisites: [{
+        type: String, // Name of the prerequisite
+    }],
+    skillsDeveloped: [{
+        type: String, // Skill or competency name
+        required: true,
+    }],
+    interactiveElements: [{
+        type: Schema.Types.ObjectId,
+        ref: 'InteractiveContent', // Reference to interactive content
+    }],
+    userProgress: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', // Reference to the user
+            required: true,
+        },
+        completedActivities: [{
+            type: String, // Activity identifier or title
+        }],
+        lastAccessed: {
+            type: Date,
+            default: Date.now, // Timestamp of last access
+        },
+    }],
+    feedback: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: true,
+        },
+        comment: {
+            type: String,
+            trim: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    version: {
+        type: Number,
+        default: 1, // Initial version
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -46,6 +100,10 @@ const learningModuleSchema = new Schema({
     updatedAt: {
         type: Date,
         default: Date.now,
+    },
+    isActive: {
+        type: Boolean,
+        default: true, // Indicates if the learning module is currently active
     },
 });
 
