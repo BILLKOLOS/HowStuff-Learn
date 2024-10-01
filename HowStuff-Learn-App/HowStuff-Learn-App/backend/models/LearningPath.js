@@ -34,6 +34,71 @@ const learningPathSchema = new Schema({
         type: Date,
         default: Date.now, // Timestamp for when the learning path was last updated
     },
+    skillsDeveloped: [{
+        type: String, // Skill or competency name
+        required: true,
+    }],
+    prerequisites: [{
+        type: String, // Name of the prerequisite
+    }],
+    estimatedDuration: {
+        type: Number, // Duration in hours
+        required: true,
+    },
+    learningObjectives: [{
+        type: String, // Objective statement
+        required: true,
+    }],
+    feedback: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: true,
+        },
+        comment: {
+            type: String,
+            trim: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    relatedResources: [{
+        title: {
+            type: String,
+            required: true,
+        },
+        link: {
+            type: String,
+            required: true,
+        },
+    }],
+    isActive: {
+        type: Boolean,
+        default: true, // Indicates if the learning path is currently active
+    },
+    progress: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        completedModules: [{
+            type: Schema.Types.ObjectId,
+            ref: 'Module', // Reference to completed modules
+        }],
+        lastAccessed: {
+            type: Date,
+            default: Date.now, // Last time the user accessed this learning path
+        },
+    }],
 });
 
 // Middleware to update `updatedAt` before saving
