@@ -22,6 +22,86 @@ exports.updateProgress = async (req, res) => {
         res.status(500).json({ error: 'Failed to update progress', details: error.message });
     }
 };
+// Submit feedback for a module
+exports.submitFeedback = async (req, res) => {
+    const { userId, moduleId, feedback } = req.body;
+
+    try {
+        const progress = await Progress.findOne({ userId, moduleId });
+        if (!progress) {
+            return res.status(404).json({ error: 'Progress record not found' });
+        }
+
+        // Assuming feedback is stored in the progress model
+        progress.feedback = feedback; // Assuming feedback field exists in Progress model
+        await progress.save();
+        res.status(200).json({ message: 'Feedback submitted successfully', feedback });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to submit feedback', details: error.message });
+    }
+};
+// Enhanced user behavior analysis
+exports.analyzeUserBehavior = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const progressData = await Progress.find({ userId });
+        
+        const completionRate = progressData.filter(p => p.completed).length / progressData.length * 100;
+        const averageScore = progressData.reduce((acc, p) => acc + p.score, 0) / progressData.length;
+
+        const analysisResults = {
+            completionRate,
+            averageScore,
+            // Further analysis can be added
+        };
+
+        res.status(200).json({ message: 'User behavior analysis complete', data: analysisResults });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to analyze user behavior', details: error.message });
+    }
+};
+// Recommend modules based on progress and scores
+exports.recommendModules = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const progressData = await Progress.find({ userId }).populate('moduleId');
+        // Example logic for recommending modules
+        const recommendedModules = progressData.filter(progress => progress.score < 60); // Example threshold
+        res.status(200).json({ message: 'Module recommendations generated', data: recommendedModules });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to recommend modules', details: error.message });
+    }
+};
+// Track completion trends over a specified period
+exports.trackCompletionTrends = async (req, res) => {
+    const { userId, startDate, endDate } = req.body;
+
+    try {
+        const completionTrends = await Progress.find({
+            userId,
+            updatedAt: { $gte: new Date(startDate), $lte: new Date(endDate) }
+        }).sort({ updatedAt: 1 });
+
+        res.status(200).json({ message: 'Completion trends retrieved', data: completionTrends });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to track completion trends', details: error.message });
+    }
+};
+// Get learning goals for a user
+exports.getLearningGoals = async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        res.status(200).json({ learningGoals: user.learningGoals });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve learning goals', details: error.message });
+    }
+};
 
 // Retrieve progress report for a user
 exports.getProgressReport = async (req, res) => {

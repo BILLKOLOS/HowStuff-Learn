@@ -8,6 +8,11 @@ const paymentSchema = new Schema({
         ref: 'User', // Reference to the user making the payment
         required: true,
     },
+    userRole: {
+        type: String,
+        enum: ['Student', 'Parent', 'Admin', 'Teacher'],
+        required: true,
+    },
     amount: {
         type: Number,
         required: true,
@@ -28,15 +33,19 @@ const paymentSchema = new Schema({
         enum: ['Pending', 'Completed', 'Failed'],
         default: 'Pending', // Default status is pending until confirmed
     },
-    createdAt: {
-        type: Date,
-        default: Date.now,
+    description: {
+        type: String,
+        required: true,
+        trim: true, // Description of the payment
     },
-    updatedAt: {
+    paymentDate: {
         type: Date,
-        default: Date.now,
+        default: Date.now, // Capture when the payment was processed
     },
-    // New fields for enhanced payment tracking
+    refundStatus: {
+        type: Boolean,
+        default: false, // Track if the payment has been refunded
+    },
     currency: {
         type: String,
         required: true,
@@ -44,6 +53,45 @@ const paymentSchema = new Schema({
     },
     paymentDetails: {
         type: Schema.Types.Mixed, // Flexible structure for storing additional payment info
+        payPalInvoice: {
+            type: String,
+        },
+        mpesaCode: {
+            type: String,
+        },
+    },
+    isRecurring: {
+        type: Boolean,
+        default: false,
+    },
+    recurrence: {
+        type: String,
+        enum: ['Weekly', 'Monthly', 'Yearly'],
+    },
+    nextPaymentDate: {
+        type: Date,
+    },
+    transactionHistory: [{
+        transactionId: {
+            type: String,
+            required: true,
+        },
+        status: {
+            type: String,
+            enum: ['Pending', 'Completed', 'Failed'],
+        },
+        date: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    createdAt: {
+        type: Date,
+        default: Date.now,
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now,
     },
 });
 

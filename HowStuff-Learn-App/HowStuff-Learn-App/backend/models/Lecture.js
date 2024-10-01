@@ -71,6 +71,77 @@ const lectureSchema = new Schema({
         type: Boolean,
         default: true, // Indicates if the lecture is currently active
     },
+    type: {
+        type: String,
+        enum: ['Live', 'Recorded', 'Guest Speaker'],
+        required: true,
+    },
+    materials: [{
+        title: {
+            type: String,
+            required: true,
+        },
+        link: {
+            type: String,
+            required: true,
+        },
+        uploadedAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    questions: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        question: {
+            type: String,
+            required: true,
+        },
+        answered: {
+            type: Boolean,
+            default: false,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    followUps: [{
+        description: {
+            type: String,
+            required: true,
+        },
+        dueDate: {
+            type: Date,
+        },
+        completed: {
+            type: Boolean,
+            default: false,
+        },
+    }],
+    notifications: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Notification',
+    }],
+    attendance: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        attendedAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
 });
 
 // Middleware to update `updatedAt` before saving

@@ -132,3 +132,81 @@ exports.trackUserProgress = async (req, res) => {
         res.status(500).json({ message: 'Error tracking progress', error: err.message });
     }
 };
+// Retrieve progress in a specific learning path
+exports.getLearningPathProgress = async (req, res) => {
+    const { pathId } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const learningPath = await LearningPath.findById(pathId);
+        if (!learningPath) {
+            return res.status(404).json({ message: 'Learning path not found' });
+        }
+
+        // Assuming progress data is stored in a separate model or field
+        const userProgress = await Progress.findOne({ userId, moduleId: pathId });
+        res.status(200).json({ message: 'Progress retrieved successfully', userProgress });
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving progress', error: err.message });
+    }
+};
+
+// Get details of a specific module in a learning path
+exports.getModuleDetails = async (req, res) => {
+    const { moduleId } = req.params;
+
+    try {
+        const moduleDetails = await LearningPath.findOne({ 'modules._id': moduleId }, { 'modules.$': 1 });
+        if (!moduleDetails) {
+            return res.status(404).json({ message: 'Module not found' });
+        }
+        res.status(200).json(moduleDetails.modules[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving module details', error: err.message });
+    }
+};
+
+// Provide feedback on a learning path
+exports.provideFeedback = async (req, res) => {
+    const { pathId, feedback } = req.body;
+    const userId = req.user.id;
+
+    try {
+        const learningPath = await LearningPath.findById(pathId);
+        if (!learningPath) {
+            return res.status(404).json({ message: 'Learning path not found' });
+        }
+
+        // Assuming feedback is stored in an array in the LearningPath model
+        learningPath.feedback.push({ userId, feedback, createdAt: new Date() });
+        await learningPath.save();
+
+        res.status(200).json({ message: 'Feedback submitted successfully', feedback });
+    } catch (err) {
+        res.status(500).json({ message: 'Error submitting feedback', error: err.message });
+    }
+};
+
+// Recommend learning paths based on user profile and progress
+exports.recommendLearningPaths = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const recommendations = await RecommendationService.getUserRecommendations(userId);
+        res.status(200).json(recommendations);
+    } catch (err) {
+        res.status(500).json({ message: 'Error generating recommendations', error: err.message });
+    }
+};
+
+// Get history of learning path changes for a user
+exports.getLearningPathHistory = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const history = await LearningPath.find({ userId }).select('-modules'); // Assuming history includes learning paths without module details
+        res.status(200).json(history);
+    } catch (err) {
+        res.status(500).json({ message: 'Error retrieving learning path history', error: err.message });
+    }
+};

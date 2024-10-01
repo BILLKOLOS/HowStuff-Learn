@@ -37,6 +37,10 @@ const discussionSchema = new mongoose.Schema({
         createdAt: {
             type: Date,
             default: Date.now
+        },
+        isAnonymous: {
+            type: Boolean,
+            default: false // Indicates if the comment is anonymous
         }
     }],
     tags: [{
@@ -46,7 +50,49 @@ const discussionSchema = new mongoose.Schema({
     isClosed: {
         type: Boolean,
         default: false // Indicates if the discussion is closed for further comments
-    }
+    },
+    relatedResourceIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'ExternalResource' // Reference to ExternalResource model
+    }],
+    discussionType: {
+        type: String,
+        enum: ['question', 'general', 'feedback'], // Types of discussions
+        required: true,
+    },
+    poll: {
+        question: {
+            type: String,
+            trim: true
+        },
+        options: [{
+            option: {
+                type: String,
+                required: true
+            },
+            votes: {
+                type: Number,
+                default: 0 // Votes for the option
+            }
+        }]
+    },
+    status: {
+        type: String,
+        enum: ['active', 'resolved', 'archived'], // Discussion statuses
+        default: 'active' // Default status
+    },
+    lastActiveAt: {
+        type: Date,
+        default: Date.now // Timestamp for the last activity
+    },
+    closedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User' // Reference to the User model
+    },
+    closureReason: {
+        type: String,
+        trim: true // Reason for closing the discussion
+    },
 });
 
 // Create the Discussion model

@@ -267,3 +267,68 @@ exports.getEnrolledStudents = async (req, res) => {
 };: 'Successfully enrolled in learning module', learningModule });
         } else {
             res.status(400).json({ message: '
+// Mark a learning module as completed for a user
+exports.completeLearningModule = async (req, res) => {
+    const { moduleId } = req.params;
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId);
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        if (!learningModule.completedUsers.includes(req.user.id)) {
+            learningModule.completedUsers.push(req.user.id);
+            await learningModule.save();
+            res.status(200).json({ message: 'Learning module marked as completed', learningModule });
+        } else {
+            res.status(400).json({ message: 'Module already marked as completed' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error marking module as completed', error: error.message });
+    }
+};
+ // Add an assessment to a learning module
+exports.addAssessment = async (req, res) => {
+    const { moduleId } = req.params;
+    const { assessment } = req.body; // Expecting assessment details in the body
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId);
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        learningModule.assessments.push(assessment);
+        await learningModule.save();
+        res.status(200).json({ message: 'Assessment added successfully', learningModule });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding assessment', error: error.message });
+    }
+};
+// Get feedback for a specific learning module
+exports.getFeedback = async (req, res) => {
+    const { moduleId } = req.params;
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId).select('feedback');
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        res.status(200).json({ feedback: learningModule.feedback });
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving feedback', error: error.message });
+    }
+};
+
+// Add feedback for a learning module
+exports.addFeedback = async (req, res) => {
+    const { moduleId } = req.params;
+    const { feedback } = req.body; // Expecting feedback content in the body
+
+    try {
+        const learningModule = await LearningModule.findById(moduleId);
+        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+
+        learningModule.feedback.push({ userId: req.user.id, feedback, createdAt: new Date() });
+        await learningModule.save();
+        res.status(200).json({ message: 'Feedback added successfully', learningModule });
+    } catch (error) {
+        res.status(500).json({ message: 'Error adding feedback', error: error.message });
+    }
+};
