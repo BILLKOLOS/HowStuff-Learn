@@ -44,6 +44,49 @@ const externalResourceSchema = new Schema({
         max: 5,
         default: 3, // Default rating
     },
+    resourceType: {
+        type: String,
+        required: true,
+        enum: ['video', 'article', 'tutorial', 'book'], // Define resource types
+    },
+    author: {
+        type: String,
+        required: true, // Author/creator name
+    },
+    usageInstructions: {
+        type: String,
+        trim: true, // Optional usage instructions
+    },
+    learningPathIds: [{
+        type: Schema.Types.ObjectId,
+        ref: 'LearningPath', // Reference to LearningPath model
+    }],
+    ratingCount: {
+        type: Number,
+        default: 0, // Count of ratings
+    },
+    feedback: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', // Reference to the User model
+        },
+        comment: {
+            type: String,
+            trim: true, // User comment
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    relatedResources: [{
+        type: Schema.Types.ObjectId,
+        ref: 'ExternalResource', // Reference to ExternalResource model
+    }],
+    accessRestrictions: {
+        type: String,
+        enum: ['free', 'subscription', 'institutional'], // Access types
+    },
 });
 
 // Middleware to update `updatedAt` before saving
