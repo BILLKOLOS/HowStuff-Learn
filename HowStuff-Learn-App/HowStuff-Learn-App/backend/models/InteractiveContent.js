@@ -36,6 +36,46 @@ const interactiveContentSchema = new Schema({
         ref: 'User', // Reference to the User model (educator or creator)
         required: true,
     },
+    tags: [{
+        type: String, // Tags for categorization
+    }],
+    duration: { 
+        type: Number, 
+        required: true, // Duration in minutes
+    },
+    difficultyLevel: {
+        type: String,
+        enum: ['easy', 'medium', 'hard'], // Difficulty levels
+        required: true,
+    },
+    learningObjectives: [{
+        type: String, // Objectives for the content
+    }],
+    feedback: [{
+        user: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', // Reference to the user giving feedback
+            required: true,
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            required: true,
+        },
+        comment: {
+            type: String,
+            trim: true,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    version: {
+        type: Number,
+        default: 1, // Initial version
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -43,6 +83,10 @@ const interactiveContentSchema = new Schema({
     updatedAt: {
         type: Date,
         default: Date.now,
+    },
+    isActive: {
+        type: Boolean,
+        default: true, // Indicates if the content is currently active
     },
 });
 
