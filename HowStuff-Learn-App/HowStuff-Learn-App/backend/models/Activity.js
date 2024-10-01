@@ -15,7 +15,7 @@ const activitySchema = new Schema({
     },
     suggestedAgeGroup: {
         type: String,
-        enum: ['0-2', '3-5', '6-8', '9-12', '13+'], // Age groups for suggestions
+        enum: ['0-2', '3-5', '6-8', '9-12', '13+'],
         required: true,
     },
     materialsNeeded: {
@@ -25,15 +25,53 @@ const activitySchema = new Schema({
     duration: {
         type: Number, // Duration in minutes
         required: true,
-        min: 1, // Minimum duration should be at least 1 minute
+        min: 1,
     },
     learningObjectives: {
         type: [String], // Array of learning objectives for the activity
         default: [],
     },
+    type: {
+        type: String,
+        required: true,
+        enum: ['individual', 'group', 'interactive'],
+    },
+    skillLevel: {
+        type: String,
+        required: true,
+        enum: ['beginner', 'intermediate', 'advanced'],
+    },
+    reward: {
+        type: Schema.Types.ObjectId,
+        ref: 'Badge', // Badge or reward earned upon activity completion
+    },
+    completionStatus: {
+        type: String,
+        required: true,
+        enum: ['not started', 'in progress', 'completed'],
+        default: 'not started',
+    },
+    completedAt: {
+        type: Date,
+    },
+    relatedLearningPath: {
+        type: Schema.Types.ObjectId,
+        ref: 'LearningPath', // Reference to related learning path
+    },
+    studyGroup: {
+        type: Schema.Types.ObjectId,
+        ref: 'StudyGroup', // Reference to a study group
+    },
+    media: [{
+        type: String, // URLs to media resources
+    }],
+    relatedAssessment: {
+        type: Schema.Types.ObjectId,
+        ref: 'Assessment', // Link to related assessment
+    },
     createdBy: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who created the activity
+        ref: 'User',
         required: true,
     },
     createdAt: {
