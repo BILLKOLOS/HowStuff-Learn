@@ -17,7 +17,6 @@ const questionSchema = new Schema({
             required: true,
         },
     }],
-    // New field to provide feedback for each question
     feedback: {
         type: String,
         default: '', // Optional feedback for incorrect answers
@@ -38,18 +37,74 @@ const assessmentSchema = new Schema({
     questions: [questionSchema], // Array of question objects
     createdBy: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the user who created the assessment
+        ref: 'User',
         required: true,
     },
     category: {
         type: String,
         required: true,
-        enum: ['math', 'science', 'language', 'arts', 'history', 'technology'], // Categories for assessments
+        enum: ['math', 'science', 'language', 'arts', 'history', 'technology'],
     },
     targetAudience: {
         type: String,
         required: true,
-        enum: ['children', 'teens', 'adults'], // Specifies the audience for the assessment
+        enum: ['children', 'teens', 'adults'],
+    },
+    difficultyLevel: {
+        type: String,
+        required: true,
+        enum: ['easy', 'medium', 'hard'],
+    },
+    tags: [{
+        type: String,
+    }],
+    type: {
+        type: String,
+        required: true,
+        enum: ['quiz', 'exam', 'survey'],
+    },
+    relatedLearningPath: {
+        type: Schema.Types.ObjectId,
+        ref: 'LearningPath',
+    },
+    timeLimit: {
+        type: Number, // Time limit in minutes
+    },
+    passingScore: {
+        type: Number,
+        required: true,
+        default: 50, // Default passing score
+    },
+    reward: {
+        type: Schema.Types.ObjectId,
+        ref: 'Badge', // Badge or reward for completing the assessment
+    },
+    maxAttempts: {
+        type: Number,
+        default: 3, // Maximum number of attempts
+    },
+    attempts: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true,
+        },
+        score: {
+            type: Number,
+        },
+        attemptDate: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    isAdaptive: {
+        type: Boolean,
+        default: false, // Indicates if adaptive learning is enabled
+    },
+    scoringMethod: {
+        type: String,
+        required: true,
+        enum: ['percentage', 'points'],
     },
     createdAt: {
         type: Date,
@@ -59,16 +114,6 @@ const assessmentSchema = new Schema({
         type: Date,
         default: Date.now,
     },
-    // New field for assessing difficulty level
-    difficultyLevel: {
-        type: String,
-        required: true,
-        enum: ['easy', 'medium', 'hard'], // Difficulty levels for assessments
-    },
-    // New field for tags to enhance searchability
-    tags: [{
-        type: String, // Array of tags for better categorization
-    }],
 });
 
 // Middleware to update `updatedAt` before saving
@@ -78,8 +123,7 @@ assessmentSchema.pre('save', function(next) {
 });
 
 // Create models
-const Question = mongoose.model('Question', questionSchema); // Optional if you want to manage questions separately
+const Question = mongoose.model('Question', questionSchema);
 const Assessment = mongoose.model('Assessment', assessmentSchema);
 
-// Export the Assessment model
 module.exports = Assessment;
