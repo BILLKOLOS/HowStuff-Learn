@@ -40,7 +40,6 @@ const feedbackSchema = new Schema({
         type: Date,
         default: Date.now,
     },
-    // New fields for enhanced feedback management
     response: {
         type: String,
         trim: true, // Optional response from educators or admins
@@ -51,6 +50,37 @@ const feedbackSchema = new Schema({
     },
     resolvedAt: {
         type: Date, // Timestamp for when feedback was resolved
+    },
+    // New fields for enhanced feedback management
+    tags: {
+        type: [String], // Array of tags for categorizing feedback
+        default: [],
+    },
+    isAnonymous: {
+        type: Boolean,
+        default: false, // Indicates whether the feedback is anonymous
+    },
+    source: {
+        type: String,
+        enum: ['Web', 'Mobile', 'Survey'], // Source of feedback
+        required: true,
+    },
+    priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'], // Priority of the feedback
+        default: 'Medium',
+    },
+    responseTime: {
+        type: Date, // Date by which feedback is expected to be addressed
+    },
+    history: [{
+        status: { type: String },
+        response: { type: String },
+        timestamp: { type: Date, default: Date.now },
+    }],
+    suggestions: {
+        type: String,
+        trim: true, // Optional suggestions from users
     },
 });
 
