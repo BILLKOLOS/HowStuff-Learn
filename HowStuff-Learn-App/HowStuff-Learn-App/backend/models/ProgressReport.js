@@ -53,6 +53,92 @@ const progressReportSchema = new Schema({
         type: String,
         trim: true, // Optional feedback or notes regarding the progress report
     },
+    feedback: [{
+        userId: {
+            type: Schema.Types.ObjectId,
+            ref: 'User', // Reference to the User model (teacher or peer)
+            required: true,
+        },
+        comment: {
+            type: String,
+            trim: true, // Optional feedback comment
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now, // Timestamp of the feedback
+        },
+    }],
+    learningGoals: [{
+        type: Schema.Types.ObjectId,
+        ref: 'LearningGoal', // Reference to the LearningGoal model
+    }],
+    attendance: [{
+        date: {
+            type: Date,
+            required: true,
+        },
+        status: {
+            type: String,
+            enum: ['Present', 'Absent', 'Late'],
+            required: true,
+        },
+    }],
+    skills: [{
+        name: {
+            type: String,
+            required: true,
+        },
+        level: {
+            type: String,
+            enum: ['Beginner', 'Intermediate', 'Advanced'],
+            default: 'Beginner',
+        },
+        dateAcquired: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    progressHistory: [{
+        overallProgress: {
+            type: Number,
+            min: 0,
+            max: 100,
+        },
+        date: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    resourcesUtilized: [{
+        title: {
+            type: String,
+            required: true,
+        },
+        url: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^https?:\/\/.+\..+/i.test(v); // Simple URL validation
+                },
+                message: props => `${props.value} is not a valid URL!`,
+            },
+        },
+        dateAccessed: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
+    visualProgressData: [{
+        date: {
+            type: Date,
+            required: true,
+        },
+        progressValue: {
+            type: Number,
+            min: 0,
+            max: 100,
+        },
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
