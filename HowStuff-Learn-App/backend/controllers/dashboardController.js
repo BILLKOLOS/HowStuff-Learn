@@ -1,3 +1,4 @@
+// dashboardController.js
 const Lecture = require('../models/Lecture'); // Updated model name
 const Quiz = require('../models/Quiz'); // Updated model name
 const User = require('../models/User'); // Updated model name
@@ -5,15 +6,16 @@ const Resource = require('../models/Resource'); // Updated model name
 const Gamification = require('../models/Gamification'); // Updated model name
 const Activity = require('../models/Activity'); // For user activity feed
 const Notification = require('../models/Notification'); // For notifications (if implemented)
+const LearningPathController = require('./learningPathController'); // Ensure the path is correct
 
 // Fetch user activity for the activity feed
 const getUserActivityFeed = async (userId) => {
-    return await Activity.find({ userId }).sort({ createdAt: -1 }).limit(5); // Adjust the model and limit as needed
+    return await Activity.find({ userId }).sort({ createdAt: -1 }).limit(5); // Fetch last 5 activities
 };
 
 // Fetch user notifications
 const getUserNotifications = async (userId) => {
-    return await Notification.find({ userId }).sort({ createdAt: -1 }).limit(5); // Fetch the last 5 notifications
+    return await Notification.find({ userId }).sort({ createdAt: -1 }).limit(5); // Fetch last 5 notifications
 };
 
 // Controller to get the dashboard data
@@ -49,6 +51,9 @@ exports.getDashboard = async (req, res) => {
         // Fetch user notifications
         const notifications = await getUserNotifications(userId);
 
+        // Fetch user learning paths (if needed)
+        const learningPaths = await LearningPathController.getUserLearningPaths(userId);
+
         // Send the collected data to the client
         res.status(200).json({
             upcomingLectures,
@@ -58,6 +63,7 @@ exports.getDashboard = async (req, res) => {
             gamificationStatus,
             activityFeed,
             notifications,
+            learningPaths, // Include learning paths in the response
         });
     } catch (err) {
         console.error(err);
