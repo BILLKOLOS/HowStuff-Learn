@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Assuming USER_LEVELS is defined in a separate file for reference
+const { USER_LEVELS } = require('../utils/aiUtils'); // Adjust the import as needed
+
 // Learning Module Schema Definition
 const learningModuleSchema = new Schema({
     title: {
@@ -62,6 +65,11 @@ const learningModuleSchema = new Schema({
         userId: {
             type: Schema.Types.ObjectId,
             ref: 'User', // Reference to the user
+            required: true,
+        },
+        userLevel: {
+            type: String,
+            enum: Object.values(USER_LEVELS), // Reference user levels
             required: true,
         },
         completedActivities: [{
