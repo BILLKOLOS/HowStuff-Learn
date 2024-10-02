@@ -27,12 +27,22 @@ exports.createLearningPath = async (req, res) => {
     }
 };
 
-// Get all learning paths for a user
-exports.getUserLearningPaths = async (req, res) => {
+// Get all learning paths for a user (internal function)
+exports.getUserLearningPaths = async (userId) => {
+    try {
+        const learningPaths = await LearningPath.find({ userId });
+        return learningPaths; // Return the learning paths instead of sending a response
+    } catch (err) {
+        throw new Error('Error fetching learning paths');
+    }
+};
+
+// Get all learning paths for a user (API endpoint)
+exports.getUserLearningPathsEndpoint = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const learningPaths = await LearningPath.find({ userId });
+        const learningPaths = await exports.getUserLearningPaths(userId);
         res.status(200).json(learningPaths);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching learning paths', error: err.message });
@@ -132,6 +142,7 @@ exports.trackUserProgress = async (req, res) => {
         res.status(500).json({ message: 'Error tracking progress', error: err.message });
     }
 };
+
 // Retrieve progress in a specific learning path
 exports.getLearningPathProgress = async (req, res) => {
     const { pathId } = req.params;
