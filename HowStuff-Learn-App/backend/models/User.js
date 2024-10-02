@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { Schema } = mongoose;
+const { USER_LEVELS } = require('../utils/aiUtils'); // Import USER_LEVELS from aiUtils
 
 const userSchema = new Schema({
     username: {
@@ -143,10 +144,10 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'LearningModule'
     }],
-    level: {
+    userLevel: { // Add userLevel field here
         type: String,
-        enum: ['elementary', 'secondary', 'university'],
-        required: true
+        enum: Object.values(USER_LEVELS), // Ensure it aligns with the USER_LEVELS constant
+        required: true,
     },
 });
 
