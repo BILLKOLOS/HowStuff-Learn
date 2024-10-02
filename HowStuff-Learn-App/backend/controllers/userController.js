@@ -5,6 +5,7 @@ const Progress = require('../models/Progress');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const ResourceService = require('../utils/resourceService');
+const { adjustContentForUserLevel } = require('../utils/contentAdjustment'); // Import the utility function
 
 // User registration
 exports.register = async (req, res) => {
@@ -106,8 +107,11 @@ exports.updateProfile = async (req, res) => {
         }
         user.username = username || user.username;
         user.email = email || user.email;
-        await user.save();
 
+        // Adjust content based on user's educational stage
+        adjustContentForUserLevel(user);
+
+        await user.save();
         res.status(200).json({ message: 'Profile updated successfully', user });
     } catch (error) {
         res.status(500).json({ message: 'Error updating profile', error: error.message });
@@ -327,5 +331,5 @@ module.exports = {
     setParentalControls,
     logSelfReflection,
     searchResources,
-    getUserDetails
+    getUserDetails,
 };
