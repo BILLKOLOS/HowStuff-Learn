@@ -12,6 +12,10 @@ const learningModuleSchema = new Schema({
         type: String,
         required: true,
     },
+    content: { // New field for module content
+        type: String, // Could be text, markdown, or other formats
+        required: true,
+    },
     objectives: [{
         type: String,
         required: true,
@@ -67,6 +71,14 @@ const learningModuleSchema = new Schema({
             type: Date,
             default: Date.now, // Timestamp of last access
         },
+        isCompleted: { // New field to indicate completion
+            type: Boolean,
+            default: false,
+        }
+    }],
+    completedUsers: [{ // New field to track users who completed the module
+        type: Schema.Types.ObjectId,
+        ref: 'User',
     }],
     feedback: [{
         user: {
