@@ -3,7 +3,7 @@ const Content = require('../models/Content');
 const User = require('../models/User'); // Import User model for role management
 const { fetchExternalResources } = require('../utils/apiServices');
 const { logEngagementData, getRecommendations } = require('../utils/aiUtils');
-const { formatContentList } = require('../utils/formattingUtils');
+const { formatContentList, generateContentWithAI } = require('../utils/formattingUtils'); // Updated to include generateContentWithAI
 
 // Create new educational content
 exports.createContent = async (req, res) => {
@@ -12,10 +12,14 @@ exports.createContent = async (req, res) => {
     try {
         // Fetch additional resources from external APIs
         const additionalResources = await fetchExternalResources(subject);
-        
+
+        // Adjust content for user level before saving (example: default to primary if user not specified)
+        const userLevel = req.user.level || 'primary'; // Assuming user level is available
+        const enhancedDescription = await generateContentWithAI(description, userLevel); // Adjust content using AI
+
         const newContent = new Content({
             title,
-            description,
+            description: enhancedDescription, // Use enhanced content
             type,
             contentLink,
             subject,
@@ -34,7 +38,7 @@ exports.createContent = async (req, res) => {
 
 // Retrieve educational content with optional search, filtering, and pagination
 exports.getContent = async (req, res) => {
-    const { subject, grade, search, type, page = 1, limit = 10 } = req.query;
+    const { subject, grade, search, type, userLevel, page = 1, limit = 10 } = req.query;
     const query = {};
 
     if (subject) query.subject = subject;
@@ -50,7 +54,13 @@ exports.getContent = async (req, res) => {
             .skip((page - 1) * limit)
             .limit(Number(limit));
 
-        const formattedContentList = formatContentList(contentList); // Format the list
+        // Adjust content for user level
+        const adjustedContentList = await Promise.all(contentList.map(async (content) => {
+            const adjustedDescription = await generateContentWithAI(content.description, userLevel);
+            return { ...content.toObject(), description: adjustedDescription }; // Update the description with adjusted content
+        }));
+
+        const formattedContentList = formatContentList(adjustedContentList); // Format the list
 
         res.status(200).json({
             totalContent,
@@ -75,7 +85,11 @@ exports.updateContent = async (req, res) => {
         // Increment version
         content.version += 1;
         content.title = title;
-        content.description = description;
+
+        // Adjust the description for user level before saving
+        const userLevel = req.user.level || 'primary'; // Assuming user level is available
+        content.description = await generateContentWithAI(description, userLevel);
+        
         content.type = type;
         content.contentLink = contentLink;
         content.subject = subject;
