@@ -19,6 +19,11 @@ const getGeneralResources = async (req, res) => {
     try {
         const { topic } = req.query;
 
+        // Validate the input
+        if (!topic || typeof topic !== 'string') {
+            return res.status(400).json({ message: 'Invalid topic provided.' });
+        }
+
         // Dynamically collect results from all services
         const results = {};
         for (const [serviceName, service] of Object.entries(services)) {
@@ -36,7 +41,11 @@ const getGeneralResources = async (req, res) => {
         }
 
         // Return the combined results from all services
-        res.status(200).json(results);
+        res.status(200).json({
+            success: true,
+            topic,
+            results,
+        });
     } catch (error) {
         console.error('Error fetching resources:', error);
         res.status(500).json({ message: 'Failed to fetch resources.' });
