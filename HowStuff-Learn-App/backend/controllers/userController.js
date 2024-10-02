@@ -96,28 +96,6 @@ exports.viewChildAccounts = async (req, res) => {
 
 // Update user profile
 exports.updateProfile = async (req, res) => {
-    const { username, email } = req.body;
-    const userId = req.user.id;
-    try {
-        const user = await User.findByIdAndUpdate(userId, { username, email }, { new: true });
-        res.status(200).json({ message: 'Profile updated successfully', user });
-    } catch (error) {
-        res.status(500).json({ message: 'Error updating profile', error: error.message });
-    }
-};
-
-// Delete user account
-exports.deleteAccount = async (req, res) => {
-    const userId = req.user.id;
-    try {
-        await User.findByIdAndDelete(userId);
-        res.status(200).json({ message: 'Account deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting account', error: error.message });
-    }
-};
-// Update Profile and Password
-exports.updateProfile = async (req, res) => {
     const { username, email, newPassword } = req.body;
     const userId = req.user.id;
     try {
@@ -133,6 +111,17 @@ exports.updateProfile = async (req, res) => {
         res.status(200).json({ message: 'Profile updated successfully', user });
     } catch (error) {
         res.status(500).json({ message: 'Error updating profile', error: error.message });
+    }
+};
+
+// Delete user account
+exports.deleteAccount = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({ message: 'Account deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error deleting account', error: error.message });
     }
 };
 
@@ -219,6 +208,7 @@ exports.viewLearningGoals = async (req, res) => {
         res.status(500).json({ message: 'Error retrieving learning goals', error: error.message });
     }
 };
+
 // View child's progress
 exports.viewChildProgress = async (req, res) => {
     const { childId } = req.params;
@@ -278,6 +268,7 @@ exports.setParentalControls = async (req, res) => {
         res.status(500).json({ message: 'Error setting parental controls', error: error.message });
     }
 };
+
 // Log self-reflection
 exports.logSelfReflection = async (req, res) => {
     const { reflection } = req.body;
@@ -329,7 +320,12 @@ module.exports = {
     getFeedback,
     setLearningGoals,
     viewLearningGoals,
+    viewChildProgress,
+    getLearningRecommendations,
+    getAchievements,
+    sendNotification,
+    setParentalControls,
     logSelfReflection,
     searchResources,
-    getUserDetails,
+    getUserDetails
 };
