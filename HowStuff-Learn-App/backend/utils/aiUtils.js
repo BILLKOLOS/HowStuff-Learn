@@ -88,11 +88,6 @@ const adjustContentForUserLevel = async (content, userLevel) => {
                 break;
         }
 
-        // If any services are required for additional content or adjustment, they can be accessed here
-        // For example:
-        // const additionalServiceResponse = await services.someService.someFunction(content);
-        // adjustedContents.push(additionalServiceResponse);
-
         // Combine results from Hugging Face and OpenAI
         return adjustedContents.join('\n\n'); // Join the contents with a double newline for better readability
     } catch (error) {
@@ -154,9 +149,58 @@ const generateLearningPath = async (user) => {
     }
 };
 
+// Function to predict attendance based on historical data
+const predictAttendance = async (lectureId) => {
+    try {
+        // Mock prediction logic; in a real scenario, this would involve machine learning models
+        const response = await axios.post(`${AI_SERVICE_ENDPOINT}/predict-attendance`, { lectureId });
+        return response.data; // Return prediction results
+    } catch (error) {
+        console.error('Error predicting attendance:', error.message);
+        throw new Error('Attendance prediction failed.');
+    }
+};
+
+// Function to generate notification messages
+const generateNotificationMessage = async (lectureTitle) => {
+    try {
+        const query = `Generate a notification message for the cancellation of the lecture: ${lectureTitle}`;
+        return await generateText(query);
+    } catch (error) {
+        console.error('Error generating notification message:', error.message);
+        return 'Notice: The lecture has been canceled due to insufficient quorum.';
+    }
+};
+
+// Function to analyze feedback from participants
+const analyzeFeedback = async (feedbackData) => {
+    try {
+        const response = await axios.post(`${AI_SERVICE_ENDPOINT}/analyze-feedback`, { feedbackData });
+        return response.data; // Return analysis results
+    } catch (error) {
+        console.error('Error analyzing feedback:', error.message);
+        throw new Error('Feedback analysis failed.');
+    }
+};
+
+// Function to dynamically adjust content delivery
+const adjustContentDelivery = async (lectureId, userEngagementData) => {
+    try {
+        const response = await axios.post(`${AI_SERVICE_ENDPOINT}/adjust-content`, { lectureId, userEngagementData });
+        return response.data; // Return adjusted content
+    } catch (error) {
+        console.error('Error adjusting content delivery:', error.message);
+        throw new Error('Content delivery adjustment failed.');
+    }
+};
+
 // Export the functions and user levels
 module.exports = {
     generateContentWithAI,
-    generateLearningPath, // Export the new function
+    generateLearningPath,
+    predictAttendance, // Export the prediction function
+    generateNotificationMessage, // Export the notification message function
+    analyzeFeedback, // Export the feedback analysis function
+    adjustContentDelivery, // Export the content delivery adjustment function
     USER_LEVELS,
 };
