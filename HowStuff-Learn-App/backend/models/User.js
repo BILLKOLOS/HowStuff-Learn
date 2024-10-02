@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const { Schema } = mongoose;
 
-// User Schema Definition
 const userSchema = new Schema({
     username: {
         type: String,
@@ -18,7 +17,7 @@ const userSchema = new Schema({
         lowercase: true,
         validate: {
             validator: function(v) {
-                return /^\S+@\S+\.\S+$/.test(v); // Basic email regex validation
+                return /^\S+@\S+\.\S+$/.test(v);
             },
             message: props => `${props.value} is not a valid email!`
         }
@@ -26,36 +25,36 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true,
-        minlength: 6, // Minimum password length
+        minlength: 6,
     },
     role: {
         type: String,
-        enum: ['student', 'parent', 'educator', 'admin'], // Roles for different user types
+        enum: ['student', 'parent', 'educator', 'admin'],
         default: 'student',
     },
     profilePicture: {
         type: String,
-        default: 'defaultProfilePic.png', // Default profile picture path
+        default: 'defaultProfilePic.png',
     },
     children: [{
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to child accounts
+        ref: 'User',
     }],
     parent: {
         type: Schema.Types.ObjectId,
-        ref: 'User', // Reference to the parent account
+        ref: 'User',
     },
     createdAt: {
         type: Date,
-        default: Date.now, // Timestamp for account creation
+        default: Date.now,
     },
     searchHistory: [{
         query: { type: String, required: true },
-        results: [{ type: String }], // List of resource links
+        results: [{ type: String }],
         createdAt: { type: Date, default: Date.now }
     }],
     progress: [{
-        assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' }, // Reference to assessments
+        assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' },
         score: { type: Number, required: true },
         createdAt: { type: Date, default: Date.now }
     }],
@@ -65,17 +64,16 @@ const userSchema = new Schema({
         createdAt: { type: Date, default: Date.now }
     }],
     reflections: [{
-        moduleId: { type: Schema.Types.ObjectId, ref: 'Module' }, // Reference to learning modules
+        moduleId: { type: Schema.Types.ObjectId, ref: 'Module' },
         reflectionText: { type: String, required: true },
         createdAt: { type: Date, default: Date.now }
     }],
-    // Additional fields for enhanced user profiles
     phoneNumber: {
         type: String,
         trim: true,
         validate: {
             validator: function(v) {
-                return /^\+?\d{10,15}$/.test(v); // Basic phone number regex
+                return /^\+?\d{10,15}$/.test(v);
             },
             message: props => `${props.value} is not a valid phone number!`
         }
@@ -85,21 +83,20 @@ const userSchema = new Schema({
         trim: true,
     },
     lastLogin: {
-        type: Date, // Track the last login time
+        type: Date,
     },
     isActive: {
         type: Boolean,
-        default: true, // Track if the user account is active
+        default: true,
     },
     notifications: [{
         message: { type: String, required: true },
         isRead: { type: Boolean, default: false },
         createdAt: { type: Date, default: Date.now }
     }],
-    // New fields added based on suggestions
     profileCompleteness: {
         type: Number,
-        default: 0, // Percentage of profile completeness
+        default: 0,
     },
     preferences: {
         notificationSettings: {
@@ -107,7 +104,7 @@ const userSchema = new Schema({
             sms: { type: Boolean, default: false },
         },
         contentVisibility: {
-            subjectPreferences: [{ type: String }], // Array of preferred subjects
+            subjectPreferences: [{ type: String }],
         },
     },
     twoFactorAuth: {
@@ -117,7 +114,7 @@ const userSchema = new Schema({
             trim: true,
             validate: {
                 validator: function(v) {
-                    return /^\+?\d{10,15}$/.test(v); // Basic phone number regex
+                    return /^\+?\d{10,15}$/.test(v);
                 },
                 message: props => `${props.value} is not a valid phone number for 2FA!`
             }
@@ -132,7 +129,7 @@ const userSchema = new Schema({
             type: String,
             validate: {
                 validator: function(v) {
-                    return /^\S+@\S+\.\S+$/.test(v); // Basic email regex validation
+                    return /^\S+@\S+\.\S+$/.test(v);
                 },
                 message: props => `${props.value} is not a valid email!`
             }
@@ -142,25 +139,30 @@ const userSchema = new Schema({
         action: { type: String, required: true },
         timestamp: { type: Date, default: Date.now },
     }],
+    enrolledModules: [{
+        type: Schema.Types.ObjectId,
+        ref: 'LearningModule'
+    }],
+    level: {
+        type: String,
+        enum: ['elementary', 'secondary', 'university'],
+        required: true
+    },
 });
 
-// Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
-        return next(); // Skip hashing if the password hasn't been modified
+        return next();
     }
-    const salt = await bcrypt.genSalt(10); // Generate salt
-    this.password = await bcrypt.hash(this.password, salt); // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
-// Method to compare passwords
 userSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password); // Compare passwords
+    return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Create User model
 const User = mongoose.model('User', userSchema);
 
-// Export the User model
 module.exports = User;
