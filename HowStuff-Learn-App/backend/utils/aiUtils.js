@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { HfInference } = require('@huggingface/inference');
+const services = require('./apiService'); // Import the dynamically loaded services
 
 // Load the Hugging Face API key from environment variables
 const hf = new HfInference({ apiKey: process.env.HUGGING_FACE_API_KEY });
@@ -61,33 +62,43 @@ const generateText = async (query) => {
 const adjustContentForUserLevel = async (content, userLevel) => {
     let adjustedContents = [];
 
-    switch (userLevel) {
-        case USER_LEVELS.KINDERGARTEN:
-            adjustedContents.push(await simplifyContent(content)); // Simplify for young learners
-            break;
-        case USER_LEVELS.PRIMARY:
-            adjustedContents.push(await generateText(`Provide relatable examples for: ${content}`));
-            break;
-        case USER_LEVELS.JUNIOR_SECONDARY:
-            adjustedContents.push(await generateText(`Add context for comprehension: ${content}`));
-            break;
-        case USER_LEVELS.HIGH_SCHOOL:
-            adjustedContents.push(await generateText(`Encourage critical thinking for: ${content}`));
-            break;
-        case USER_LEVELS.COLLEGE:
-        case USER_LEVELS.UNIVERSITY:
-            adjustedContents.push(await generateText(`Make this research-ready: ${content}`));
-            break;
-        case USER_LEVELS.SPECIALIZED:
-            adjustedContents.push(await generateText(`Provide advanced insights for: ${content}`));
-            break;
-        default:
-            adjustedContents.push(content); // Fallback to original content
-            break;
-    }
+    try {
+        switch (userLevel) {
+            case USER_LEVELS.KINDERGARTEN:
+                adjustedContents.push(await simplifyContent(content)); // Simplify for young learners
+                break;
+            case USER_LEVELS.PRIMARY:
+                adjustedContents.push(await generateText(`Provide relatable examples for: ${content}`));
+                break;
+            case USER_LEVELS.JUNIOR_SECONDARY:
+                adjustedContents.push(await generateText(`Add context for comprehension: ${content}`));
+                break;
+            case USER_LEVELS.HIGH_SCHOOL:
+                adjustedContents.push(await generateText(`Encourage critical thinking for: ${content}`));
+                break;
+            case USER_LEVELS.COLLEGE:
+            case USER_LEVELS.UNIVERSITY:
+                adjustedContents.push(await generateText(`Make this research-ready: ${content}`));
+                break;
+            case USER_LEVELS.SPECIALIZED:
+                adjustedContents.push(await generateText(`Provide advanced insights for: ${content}`));
+                break;
+            default:
+                adjustedContents.push(content); // Fallback to original content
+                break;
+        }
 
-    // Combine results from Hugging Face and OpenAI
-    return adjustedContents.join('\n\n'); // Join the contents with a double newline for better readability
+        // If any services are required for additional content or adjustment, they can be accessed here
+        // For example:
+        // const additionalServiceResponse = await services.someService.someFunction(content);
+        // adjustedContents.push(additionalServiceResponse);
+
+        // Combine results from Hugging Face and OpenAI
+        return adjustedContents.join('\n\n'); // Join the contents with a double newline for better readability
+    } catch (error) {
+        console.error('Error adjusting content:', error.message);
+        return content; // Fallback to original content on error
+    }
 };
 
 // Main function to generate content with AI
