@@ -171,36 +171,51 @@ exports.createPoll = async (req, res) => {
     }
 };
 
-// Get all lectures for a specific resource person
-exports.getLecturesByResourcePerson = async (req, res) => {
+// Predict attendance for a lecture
+exports.predictAttendance = async (req, res) => {
     try {
-        const resourcePersonId = req.params.resourcePersonId;
-        const lectures = await Lecture.find({ resourcePerson: resourcePersonId });
-        res.status(200).json({ lectures });
+        const lectureId = req.params.lectureId;
+        const lecture = await Lecture.findById(lectureId);
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
+
+        // Example prediction logic (could be based on historical data or user engagement)
+        const predictedAttendance = Math.ceil(lecture.quorum * 1.2); // Predicting 20% more attendees than quorum
+
+        res.status(200).json({ predictedAttendance });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching lectures', error });
+        res.status(500).json({ message: 'Error predicting attendance', error });
     }
 };
 
-// Get all feedback for a lecture
-exports.getFeedbackForLecture = async (req, res) => {
-    try {
-        const lectureId = req.params.lectureId;
-        const feedbacks = await Feedback.find({ lecture: lectureId }).populate('user', 'name email');
-        res.status(200).json({ feedbacks });
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching feedback', error });
+// Generate a notification message for a lecture
+exports.generateNotificationMessage = (lecture) => {
+    const baseMessage = `Reminder: The lecture "${lecture.title}" is scheduled for ${lecture.scheduledTime}.`;
+    if (lecture.attendees.length < lecture.quorum) {
+        return `${baseMessage} Current attendees: ${lecture.attendees.length}.`;
     }
+    return baseMessage;
 };
 
-// Get all polls for a lecture
-exports.getPollsForLecture = async (req, res) => {
+// Adjust content delivery based on user engagement
+exports.adjustContentDelivery = async (req, res) => {
     try {
         const lectureId = req.params.lectureId;
-        const polls = await Poll.find({ lecture: lectureId });
-        res.status(200).json({ polls });
+        const engagementData = req.body.engagementData; // Assume engagement data comes from client-side
+
+        const lecture = await Lecture.findById(lectureId);
+        if (!lecture) return res.status(404).json({ message: 'Lecture not found' });
+
+        // Example logic to adjust content delivery
+        if (engagementData && engagementData.averageEngagement < 0.5) {
+            lecture.contentDeliveryMode = 'interactive'; // Switch to more interactive mode if engagement is low
+        } else {
+            lecture.contentDeliveryMode = 'standard';
+        }
+
+        await lecture.save();
+        res.status(200).json({ message: 'Content delivery adjusted successfully', lecture });
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching polls', error });
+        res.status(500).json({ message: 'Error adjusting content delivery', error });
     }
 };
 
@@ -211,6 +226,11 @@ exports.answerPoll = async (req, res) => {
 
         const poll = await Poll.findById(pollId);
         if (!poll) return res.status(404).json({ message: 'Poll not found' });
+
+        // Check if the user has already answered the poll
+        if (poll.responses.some(response => response.user.equals(req.user.id))) {
+            return res.status(400).json({ message: 'You have already answered this poll' });
+        }
 
         poll.responses.push({ user: req.user.id, selectedOption });
         await poll.save();
