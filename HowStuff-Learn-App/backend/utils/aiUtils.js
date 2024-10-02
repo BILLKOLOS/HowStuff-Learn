@@ -117,8 +117,46 @@ const generateContentWithAI = async (query, userLevel) => {
     }
 };
 
-// Export the generateContentWithAI function and user levels
+/**
+ * Generate personalized learning paths for a user based on their preferences and progress.
+ * @param {Object} user - The user object containing preferences and progress.
+ * @returns {Promise<Array>} - An array of suggested learning paths.
+ */
+const generateLearningPath = async (user) => {
+    try {
+        // Validate user input
+        if (!user || !user.learningPreferences || !user.progress || !user.userLevel) {
+            throw new Error('Invalid user data for generating learning path.');
+        }
+
+        // Prepare an array to hold the learning path suggestions
+        const learningPathSuggestions = [];
+
+        // Loop through user preferences to create a tailored learning path
+        for (const subject of user.learningPreferences) {
+            // Query to generate content for the specific subject
+            const query = `Suggest a learning path for ${subject} considering user progress: ${JSON.stringify(user.progress)}`;
+
+            // Generate content based on the user's level
+            const content = await generateContentWithAI(query, user.userLevel);
+
+            // Push the generated content to the learning path suggestions
+            learningPathSuggestions.push({
+                subject,
+                content,
+            });
+        }
+
+        return learningPathSuggestions; // Return the array of learning paths
+    } catch (error) {
+        console.error('Error generating learning path:', error.message);
+        throw new Error('Failed to generate learning path.');
+    }
+};
+
+// Export the functions and user levels
 module.exports = {
     generateContentWithAI,
+    generateLearningPath, // Export the new function
     USER_LEVELS,
 };
