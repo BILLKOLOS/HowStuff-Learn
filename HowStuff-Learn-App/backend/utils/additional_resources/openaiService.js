@@ -17,7 +17,7 @@ const isValidEducationLevel = (level) => {
 };
 
 // Method to generate text using OpenAI's API
-exports.generateText = async (query, educationLevel) => {
+exports.generateText = async (query, educationLevel, model = 'gpt-3.5-turbo') => {
     try {
         // Validate the education level before making the request
         if (!isValidEducationLevel(educationLevel)) {
@@ -27,17 +27,23 @@ exports.generateText = async (query, educationLevel) => {
         // Customize the query based on the education level
         const customizedQuery = `(${educationLevel}) ${query}`; // Prepend the education level for context
 
+        console.time('OpenAI API call');
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: 'gpt-3.5-turbo',
+            model,
             messages: [{ role: 'user', content: customizedQuery }],
         }, {
             headers: { 'Authorization': `Bearer ${process.env.OPENAI_API_KEY}` }
         });
+        console.timeEnd('OpenAI API call');
 
         // Return the generated content from OpenAI
         return response.data.choices[0].message.content;
     } catch (error) {
-        console.error(`Error generating text from OpenAI: ${error.message}`);
+        if (error.response) {
+            console.error(`OpenAI API error: ${error.response.status} - ${error.response.data}`);
+        } else {
+            console.error(`Error generating text from OpenAI: ${error.message}`);
+        }
         throw new Error(`Error generating text from OpenAI: ${error.message}`);
     }
 };
