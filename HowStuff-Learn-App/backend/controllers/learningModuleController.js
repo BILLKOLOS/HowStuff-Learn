@@ -2,6 +2,7 @@
 const LearningModule = require('../models/LearningModule');
 const User = require('../models/User');
 const mongoose = require('mongoose');
+const { generateContentWithAI } = require('../utils/aiUtils'); // Import the AI content generation function
 
 // Create a new learning module
 exports.createLearningModule = async (req, res) => {
@@ -231,23 +232,43 @@ exports.getComments = async (req, res) => {
     }
 };
 
+
 // Enroll a student in a learning module
-exports.enrollStudent = async (req, res) => {
-    const { moduleId } = req.params;
+const enrollStudentInModule = async (req, res) => {
+    const { userId, moduleId } = req.body;
 
     try {
-        const learningModule = await LearningModule.findById(moduleId);
-        if (!learningModule) return res.status(404).json({ message: 'Learning module not found' });
+        // Find the user and module
+        const user = await User.findById(userId);
+        const module = await LearningModule.findById(moduleId);
 
-        if (!learningModule.enrolledStudents.includes(req.user.id)) {
-            learningModule.enrolledStudents.push(req.user.id);
-            await learningModule.save();
-            res.status(200).json({ return res.status(400).json({ message: 'Already enrolled in this learning module' });
+        if (!user || !module) {
+            return res.status(404).json({ message: 'User or Module not found' });
         }
 
-        res.status(200).json({ message: 'Successfully enrolled in learning module', learningModule });
+        // Enroll user in the module (assuming there's an enrolledModules array in the User model)
+        if (!user.enrolledModules.includes(moduleId)) {
+            user.enrolledModules.push(moduleId);
+            await user.save();
+        }
+
+        // Fetch the module content
+        const moduleContent = module.content; // Adjust according to your model's content structure
+
+        // Get the user's level (for example, elementary, secondary, university)
+        const userLevel = user.level; // Ensure your User model has a 'level' field
+        
+        // Use AI to adjust the module content based on the user's level
+        const adjustedContent = await generateContentWithAI(moduleContent, userLevel);
+
+        // Send the adjusted content back in the response
+        res.status(200).json({
+            message: 'Student enrolled successfully',
+            content: adjustedContent,
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Error enrolling in learning module', error: error.message });
+        console.error('Error enrolling student in module:', error);
+        res.status(500).json({ message: 'Error enrolling student', error: error.message });
     }
 };
 
@@ -264,9 +285,8 @@ exports.getEnrolledStudents = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error retrieving enrolled students', error: error.message });
     }
-};: 'Successfully enrolled in learning module', learningModule });
-        } else {
-            res.status(400).json({ message: '
+};
+
 // Mark a learning module as completed for a user
 exports.completeLearningModule = async (req, res) => {
     const { moduleId } = req.params;
@@ -286,7 +306,8 @@ exports.completeLearningModule = async (req, res) => {
         res.status(500).json({ message: 'Error marking module as completed', error: error.message });
     }
 };
- // Add an assessment to a learning module
+
+// Add an assessment to a learning module
 exports.addAssessment = async (req, res) => {
     const { moduleId } = req.params;
     const { assessment } = req.body; // Expecting assessment details in the body
@@ -302,6 +323,7 @@ exports.addAssessment = async (req, res) => {
         res.status(500).json({ message: 'Error adding assessment', error: error.message });
     }
 };
+
 // Get feedback for a specific learning module
 exports.getFeedback = async (req, res) => {
     const { moduleId } = req.params;
@@ -331,4 +353,14 @@ exports.addFeedback = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error adding feedback', error: error.message });
     }
+};
+
+// Export the methods
+module.exports = {
+    enrollStudentInModule,
+    getEnrolledStudents,
+    completeLearningModule,
+    addAssessment,
+    getFeedback,
+    addFeedback,
 };
