@@ -1,13 +1,22 @@
-const formatResultsForUserLevel = (results, userLevel) => {
-    return results.map(result => {
-        // Format result based on user level (e.g., different content for beginners and advanced users)
-        return {
+const { adjustContentForUserLevel } = require('./aiUtils');
+
+// Format results based on user level
+const formatResultsForUserLevel = async (results, userLevel) => {
+    const formattedResults = [];
+
+    for (const result of results) {
+        // Adjust the content based on the user level
+        const adjustedContent = await adjustContentForUserLevel(result.content, userLevel);
+
+        // Push the formatted result with title, adjusted content, and user level
+        formattedResults.push({
             title: result.title,
-            content: result.content,
+            content: adjustedContent,
             level: userLevel,
-            // Add more fields as needed
-        };
-    });
+        });
+    }
+
+    return formattedResults; // Return the array of formatted results
 };
 
 module.exports = { formatResultsForUserLevel };
