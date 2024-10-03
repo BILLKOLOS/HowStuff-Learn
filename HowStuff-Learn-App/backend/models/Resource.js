@@ -88,6 +88,15 @@ const resourceSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User', // Reference to the user who last updated the resource
     },
+    // New fields for AR/VR
+    isAR: {
+        type: Boolean,
+        default: false, // Flag for AR-enabled resources
+    },
+    isVR: {
+        type: Boolean,
+        default: false, // Flag for VR-enabled resources
+    }
 });
 
 // Middleware to update `updatedAt` before saving
