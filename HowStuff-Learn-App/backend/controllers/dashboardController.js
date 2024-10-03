@@ -23,23 +23,26 @@ exports.getDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Fetch upcoming and live lectures
+        // Fetch upcoming and live lectures (include AR/VR flagged lessons)
         const upcomingLectures = await Lecture.find({
             attendees: userId,
-            startTime: { $gte: new Date() } // Find lectures starting in the future
+            startTime: { $gte: new Date() }, // Find lectures starting in the future
+            $or: [{ isAR: true }, { isVR: true }] // Only include AR/VR-enabled lessons
         }).sort({ startTime: 1 }).limit(5); // Get the next 5 upcoming lectures
 
-        // Fetch recent quizzes and assignments
+        // Fetch recent quizzes (include AR/VR-related quizzes)
         const recentQuizzes = await Quiz.find({
-            participants: userId
+            participants: userId,
+            isARVRQuiz: true // Filter AR/VR-enabled quizzes
         }).sort({ createdAt: -1 }).limit(5); // Get the last 5 quizzes or assignments
 
         // Fetch user progress for courses
         const user = await User.findById(userId).populate('progress.assessmentId');
 
-        // Fetch suggested resources based on user activity or preferences
+        // Fetch suggested resources (include AR/VR content)
         const suggestedResources = await Resource.find({
-            subjects: { $in: user.learningPreferences } // Match resources to user preferences
+            subjects: { $in: user.learningPreferences },
+            $or: [{ isAR: true }, { isVR: true }] // Include only AR/VR resources
         }).limit(5); // Fetch 5 suggested resources
 
         // Fetch gamification status (badges earned)
@@ -64,6 +67,7 @@ exports.getDashboard = async (req, res) => {
             activityFeed,
             notifications,
             learningPaths, // Include learning paths in the response
+            arvrModules: { upcomingLectures, recentQuizzes, suggestedResources }, // Send AR/VR data
         });
     } catch (err) {
         console.error(err);
