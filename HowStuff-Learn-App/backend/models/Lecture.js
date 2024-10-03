@@ -142,6 +142,15 @@ const lectureSchema = new Schema({
         ref: 'User',
         required: true,
     },
+    // New fields for AR/VR
+    isAR: {
+        type: Boolean,
+        default: false, // Flag for AR-enabled lectures
+    },
+    isVR: {
+        type: Boolean,
+        default: false, // Flag for VR-enabled lectures
+    }
 });
 
 // Middleware to update `updatedAt` before saving
