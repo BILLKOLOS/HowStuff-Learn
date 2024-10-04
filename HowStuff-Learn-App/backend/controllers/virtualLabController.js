@@ -194,4 +194,129 @@ router.get('/progress', authenticateUser, async (req, res) => {
     }
 });
 
+// POST /api/labs/recommend
+router.post('/recommend', authenticateUser, async (req, res) => {
+    try {
+        const userProfile = await UserProfile.findById(req.user.id);
+        const recommendedLabs = await Lab.find({
+            subjects: { $in: userProfile.interests },
+            skillLevel: userProfile.skillLevel,
+        });
+        res.status(200).json(recommendedLabs);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching recommendations.', error });
+    }
+});
+
+// PATCH /api/labs/:labId/complete
+router.patch('/:labId/complete', authenticateUser, async (req, res) => {
+    try {
+        // Update user's completion status and award badge
+        const user = await User.findById(req.user.id);
+        user.completedLabs.push(req.params.labId);
+        if (user.completedLabs.length % 5 === 0) {
+            user.badges.push('Lab Master');
+        }
+        await user.save();
+        res.status(200).json({ message: 'Lab completed and badge awarded!', user });
+    } catch (error) {
+        res.status(500).json({ message: 'Error completing lab.', error });
+    }
+});
+
+// POST /api/labs/:labId/collaborate
+router.post('/:labId/collaborate', authenticateUser, async (req, res) => {
+    try {
+        const collaboration = new Collaboration({
+            labId: req.params.labId,
+            members: req.body.members, // Array of user IDs
+            results: [],
+        });
+        await collaboration.save();
+        res.status(201).json({ message: 'Collaboration started!', collaboration });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating collaboration.', error });
+    }
+});
+
+// GET /api/labs/progress/:studentId
+router.get('/progress/:studentId', authenticateUser, async (req, res) => {
+    try {
+        const progress = await ProgressReport.find({ studentId: req.params.studentId });
+        res.status(200).json(progress);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving progress.', error });
+    }
+});
+
+// GET /api/labs/external-resources
+router.get('/external-resources', async (req, res) => {
+    try {
+        const resources = await fetchExternalResources(); // Implement this function to call external APIs
+        res.status(200).json(resources);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching external resources.', error });
+    }
+});
+
+// POST /api/labs/:labId/certificate
+router.post('/:labId/certificate', authenticateUser, async (req, res) => {
+    try {
+        const certificate = new Certificate({
+            userId: req.user.id,
+            labId: req.params.labId,
+            date: new Date(),
+        });
+        await certificate.save();
+        res.status(201).json({ message: 'Certificate issued!', certificate });
+    } catch (error) {
+        res.status(500).json({ message: 'Error issuing certificate.', error });
+    }
+});
+
+// GET /api/labs/:labId/tutorial
+router.get('/:labId/tutorial', async (req, res) => {
+    try {
+        const tutorial = await Tutorial.findOne({ labId: req.params.labId });
+        res.status(200).json(tutorial);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving tutorial.', error });
+    }
+});
+
+// POST /api/labs/:labId/feedback
+router.post('/:labId/feedback', authenticateUser, async (req, res) => {
+    try {
+        const feedback = new Feedback({
+            labId: req.params.labId,
+            userId: req.user.id,
+            comments: req.body.comments,
+        });
+        await feedback.save();
+        res.status(201).json({ message: 'Feedback submitted!', feedback });
+    } catch (error) {
+        res.status(500).json({ message: 'Error submitting feedback.', error });
+    }
+});
+
+// GET /api/labs/analytics/:teacherId
+router.get('/analytics/:teacherId', authenticateUser, async (req, res) => {
+    try {
+        const analyticsData = await Analytics.find({ teacherId: req.params.teacherId });
+        res.status(200).json(analyticsData);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving analytics.', error });
+    }
+});
+
+// This would primarily involve front-end adjustments, but here's an example endpoint to fetch accessibility settings
+router.get('/accessibility-settings', async (req, res) => {
+    try {
+        const settings = await AccessibilitySettings.findOne({});
+        res.status(200).json(settings);
+    } catch (error) {
+        res.status(500).json({ message: 'Error retrieving accessibility settings.', error });
+    }
+});
+
 module.exports = router;
