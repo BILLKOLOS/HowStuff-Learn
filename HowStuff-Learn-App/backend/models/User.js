@@ -144,13 +144,22 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'LearningModule'
     }],
-    userLevel: { // Add userLevel field here
+    completedLabs: [{ // New field for completed labs
+        type: Schema.Types.ObjectId,
+        ref: 'VirtualLab'
+    }],
+    badges: [{ // New field for user badges
+        badgeName: { type: String, required: true },
+        dateAwarded: { type: Date, default: Date.now }
+    }],
+    userLevel: { // User level
         type: String,
-        enum: Object.values(USER_LEVELS), // Ensure it aligns with the USER_LEVELS constant
+        enum: Object.values(USER_LEVELS),
         required: true,
     },
 });
 
+// Middleware to hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) {
         return next();
@@ -160,10 +169,11 @@ userSchema.pre('save', async function(next) {
     next();
 });
 
+// Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
 
+// Export the User model
 const User = mongoose.model('User', userSchema);
-
 module.exports = User;
