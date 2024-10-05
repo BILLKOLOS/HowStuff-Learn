@@ -29,6 +29,7 @@ const assessmentSchema = new Schema({
         type: String,
         required: true,
         trim: true,
+        index: true, // Index for faster queries
     },
     description: {
         type: String,
@@ -39,36 +40,43 @@ const assessmentSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true,
     },
     category: {
         type: String,
         required: true,
         enum: ['math', 'science', 'language', 'arts', 'history', 'technology'],
+        index: true, // Index for faster queries
     },
     targetAudience: {
         type: String,
         required: true,
         enum: ['children', 'teens', 'adults'],
+        index: true,
     },
     difficultyLevel: {
         type: String,
         required: true,
         enum: ['easy', 'medium', 'hard'],
+        index: true,
     },
     tags: [{
         type: String,
+        index: true, // Index for faster queries
     }],
     type: {
         type: String,
         required: true,
         enum: ['quiz', 'exam', 'survey'],
+        index: true,
     },
     relatedLearningPath: {
         type: Schema.Types.ObjectId,
         ref: 'LearningPath',
     },
     timeLimit: {
-        type: Number, // Time limit in minutes
+        type: Number,
+        min: 1, // Ensure time limit is a positive integer
     },
     passingScore: {
         type: Number,
@@ -109,6 +117,7 @@ const assessmentSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now,
+        index: true,
     },
     updatedAt: {
         type: Date,
