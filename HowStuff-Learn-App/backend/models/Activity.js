@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// URL validation function
+const isValidUrl = (url) => {
+    const regex = /^(http|https):\/\/[^\s/$.?#].[^\s]*$/;
+    return regex.test(url);
+};
+
 // Activity Schema Definition
 const activitySchema = new Schema({
     title: {
@@ -21,6 +27,10 @@ const activitySchema = new Schema({
     materialsNeeded: {
         type: [String], // Array of materials needed for the activity
         default: [],
+        validate: {
+            validator: (materials) => materials.every(material => typeof material === 'string'),
+            message: 'Each material must be a string',
+        },
     },
     duration: {
         type: Number, // Duration in minutes
@@ -64,6 +74,10 @@ const activitySchema = new Schema({
     },
     media: [{
         type: String, // URLs to media resources
+        validate: {
+            validator: (mediaUrls) => mediaUrls.every(url => isValidUrl(url)),
+            message: 'Each media URL must be valid',
+        },
     }],
     relatedAssessment: {
         type: Schema.Types.ObjectId,
@@ -90,6 +104,28 @@ activitySchema.pre('save', function(next) {
     next();
 });
 
-const Activity = mongoose.model('Activity', activitySchema);
+// Static methods for searching and filtering
+activitySchema.statics.findByFilters = async function(filters) {
+    const query = {};
+    
+    // Filter by suggested age group
+    if (filters.suggestedAgeGroup) {
+        query.suggestedAgeGroup = filters.suggestedAgeGroup;
+    }
 
+    // Filter by skill level
+    if (filters.skillLevel) {
+        query.skillLevel = filters.skillLevel;
+    }
+
+    // Filter by type
+    if (filters.type) {
+        query.type = filters.type;
+    }
+
+    return this.find(query);
+};
+
+// Export the Activity model
+const Activity = mongoose.model('Activity', activitySchema);
 module.exports = Activity;
