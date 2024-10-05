@@ -29,6 +29,12 @@ const contentSchema = new Schema({
     mediaUrl: {
         type: String,
         required: true, // URL to the educational material (video, article, etc.)
+        validate: {
+            validator: function(v) {
+                return /^https?:\/\/.+\..+/i.test(v); // Simple URL validation
+            },
+            message: props => `${props.value} is not a valid URL!`,
+        },
     },
     type: {
         type: String,
@@ -50,6 +56,10 @@ const contentSchema = new Schema({
     ratings: {
         type: [Number], // Array to store user ratings
         default: [],
+    },
+    averageRating: {
+        type: Number, // Calculated average rating
+        default: 0,
     },
     reviews: [{
         userId: {
@@ -86,6 +96,22 @@ const contentSchema = new Schema({
             message: props => `${props.value} is not a valid URL!`
         },
     }],
+    prerequisiteContent: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Content', // Reference to prerequisite content
+    }],
+    accessControl: {
+        type: Map, // Key-value pairs to manage access per role
+        of: Boolean,
+    },
+    progressTracking: {
+        completed: { type: Boolean, default: false },
+        inProgress: { type: Boolean, default: false },
+    },
+    updateHistory: [{
+        date: { type: Date, default: Date.now },
+        changes: { type: String }, // Description of changes made
+    }],
     createdAt: {
         type: Date,
         default: Date.now,
@@ -94,11 +120,44 @@ const contentSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    language: {
+        type: String,
+        enum: ['en', 'es', 'fr', 'other'], // Supported languages
+    },
+    altText: {
+        type: String, // Alternative text for media
+    },
+    slug: {
+        type: String,
+        unique: true, // Unique slug for SEO-friendly URLs
+        required: true,
+    },
 });
 
 // Middleware to update `updatedAt` before saving
 contentSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
+    next();
+});
+
+// Virtual method to calculate the average rating
+contentSchema.methods.calculateAverageRating = function() {
+    if (this.ratings.length > 0) {
+        const total = this.ratings.reduce((acc, curr) => acc + curr, 0);
+        this.averageRating = total / this.ratings.length;
+    } else {
+        this.averageRating = 0; // Default if no ratings exist
+    }
+};
+
+// Virtual method to add a review
+contentSchema.methods.addReview = function(review) {
+    this.reviews.push(review);
+};
+
+// Slug generation before saving
+contentSchema.pre('save', function(next) {
+    this.slug = this.title.toLowerCase().replace(/\s+/g, '-').slice(0, 100); // Generate slug from title
     next();
 });
 
