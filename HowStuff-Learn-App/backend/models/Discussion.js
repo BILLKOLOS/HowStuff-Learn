@@ -74,7 +74,10 @@ const discussionSchema = new mongoose.Schema({
                 type: Number,
                 default: 0 // Votes for the option
             }
-        }]
+        }],
+        pollDuration: {
+            type: Date, // When the poll will end
+        }
     },
     status: {
         type: String,
@@ -93,6 +96,50 @@ const discussionSchema = new mongoose.Schema({
         type: String,
         trim: true // Reason for closing the discussion
     },
+    feedback: [{
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+        },
+        comment: {
+            type: String,
+        },
+    }],
+    visibility: {
+        type: String,
+        enum: ['public', 'private', 'group'],
+        default: 'public',
+    },
+    attachments: [{
+        url: {
+            type: String,
+            validate: {
+                validator: function(v) {
+                    return /^https?:\/\/.+/i.test(v);
+                },
+                message: props => `${props.value} is not a valid URL!`,
+            },
+        },
+        type: {
+            type: String,
+            enum: ['image', 'document', 'link'],
+        },
+    }],
+    notifications: [{
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+        notifiedAt: {
+            type: Date,
+            default: Date.now,
+        },
+    }],
 });
 
 // Create the Discussion model
