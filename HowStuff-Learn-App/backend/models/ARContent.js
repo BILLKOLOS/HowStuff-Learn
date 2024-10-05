@@ -1,13 +1,42 @@
-const mongoose = require('mongoose');
+const ARContent = require('../models/ARContent');
+const ARVRInteractionLog = require('../models/ARVRInteractionLog');
 
-const ARContentSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String },
-  subject: { type: String, required: true },
-  resourceUrl: { type: String, required: true },
-  level: { type: String }, // Difficulty level
-  duration: { type: Number }, // Duration in minutes
-  createdAt: { type: Date, default: Date.now }
-});
+// Fetch all AR content
+exports.getAllARContent = async (req, res) => {
+    try {
+        const content = await ARContent.find();
+        res.status(200).json({ success: true, data: content });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 
-module.exports = mongoose.model('ARContent', ARContentSchema);
+// Fetch AR content by ID
+exports.getARContentById = async (req, res) => {
+    try {
+        const content = await ARContent.findById(req.params.id);
+        if (!content) {
+            return res.status(404).json({ success: false, message: 'Content not found' });
+        }
+        res.status(200).json({ success: true, data: content });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// Log user interaction with AR content
+exports.logARInteraction = async (req, res) => {
+    try {
+        const { userId, contentId, durationSpent } = req.body;
+        const log = new ARVRInteractionLog({
+            userId,
+            contentId,
+            contentType: 'AR',
+            durationSpent
+        });
+        await log.save();
+        res.status(201).json({ success: true, message: 'Interaction logged successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
