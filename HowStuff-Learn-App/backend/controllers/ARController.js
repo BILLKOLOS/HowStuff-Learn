@@ -28,6 +28,12 @@ exports.getARContentById = async (req, res) => {
 exports.logARInteraction = async (req, res) => {
     try {
         const { userId, contentId, durationSpent } = req.body;
+
+        // Validate input data
+        if (!userId || !contentId || typeof durationSpent !== 'number') {
+            return res.status(400).json({ success: false, message: 'Invalid input data' });
+        }
+
         const log = new ARVRInteractionLog({
             userId,
             contentId,
