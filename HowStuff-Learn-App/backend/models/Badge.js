@@ -22,6 +22,10 @@ const BadgeSchema = new mongoose.Schema({
       type: String, // Description of the criteria to earn the badge
       required: true,
   },
+  criteriaType: {
+      type: String,
+      enum: ['points', 'assessment', 'participation'], // Different types of criteria
+  },
   imageUrl: {
       type: String, // URL to the badge image
       required: true,
@@ -33,6 +37,9 @@ const BadgeSchema = new mongoose.Schema({
   },
   dateEarned: {
       type: Date, // Actual date when the badge was earned
+  },
+  dateRevoked: {
+      type: Date, // Date when the badge was revoked, if applicable
   },
   level: {
       type: String,
@@ -50,6 +57,33 @@ const BadgeSchema = new mongoose.Schema({
       type: Date, 
       default: Date.now 
   },
+  userFeedback: {
+      type: String, // User feedback regarding the badge
+  },
+  history: [{
+      date: { type: Date, default: Date.now },
+      changeDescription: { type: String },
+  }],
+  expirationDate: {
+      type: Date, // Expiration date of the badge, if applicable
+  },
+  relatedLearningModules: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'LearningModule', // Reference to related learning modules
+  }],
+  shareable: {
+      type: Boolean,
+      default: true, // Whether the badge can be shared
+  },
+  approvalStatus: {
+      type: String,
+      enum: ['approved', 'pending', 'rejected'], // Badge approval status
+      default: 'approved',
+  },
+  associatedEvents: [{
+      type: String, // Events linked to the badge
+  }],
 });
 
+// Export the Badge model
 module.exports = mongoose.model('Badge', BadgeSchema);
