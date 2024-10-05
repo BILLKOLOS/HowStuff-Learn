@@ -157,6 +157,19 @@ const userSchema = new Schema({
         enum: Object.values(USER_LEVELS),
         required: true,
     },
+    learningHistory: [{
+        contentId: { type: Schema.Types.ObjectId, ref: 'Content' },
+        completedAt: { type: Date, default: Date.now },
+        score: { type: Number },
+        interactions: [{
+            type: {
+                type: String,
+                enum: ['view', 'comment', 'like', 'share'],
+                required: true
+            },
+            timestamp: { type: Date, default: Date.now }
+        }],
+    }],
 });
 
 // Middleware to hash password before saving
