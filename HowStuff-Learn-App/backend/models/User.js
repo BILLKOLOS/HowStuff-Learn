@@ -1,203 +1,63 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
 const { Schema } = mongoose;
-const { USER_LEVELS } = require('../utils/aiUtils'); // Import USER_LEVELS from aiUtils
+const { USER_LEVELS } = require('../utils/aiUtils'); // Import USER_LEVELS
 
 const userSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true,
+    username: { type: String, required: true, unique: true, trim: true },
+    email: { 
+        type: String, required: true, unique: true, trim: true, lowercase: true,
         validate: {
-            validator: function(v) {
-                return /^\S+@\S+\.\S+$/.test(v);
-            },
+            validator: function(v) { return /^\S+@\S+\.\S+$/.test(v); },
             message: props => `${props.value} is not a valid email!`
         }
     },
-    password: {
-        type: String,
-        required: true,
-        minlength: 6,
-    },
-    role: {
-        type: String,
-        enum: ['student', 'parent', 'educator', 'admin'],
-        default: 'student',
-    },
-    profilePicture: {
-        type: String,
-        default: 'defaultProfilePic.png',
-    },
-    children: [{
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-    }],
-    parent: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    searchHistory: [{
-        query: { type: String, required: true },
-        results: [{ type: String }],
-        createdAt: { type: Date, default: Date.now }
-    }],
-    progress: [{
-        assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' },
-        score: { type: Number, required: true },
-        createdAt: { type: Date, default: Date.now }
-    }],
-    goals: [{
-        goalDescription: { type: String, required: true },
-        targetDate: { type: Date, required: true },
-        createdAt: { type: Date, default: Date.now }
-    }],
-    reflections: [{
-        moduleId: { type: Schema.Types.ObjectId, ref: 'Module' },
-        reflectionText: { type: String, required: true },
-        createdAt: { type: Date, default: Date.now }
-    }],
+    password: { type: String, required: true, minlength: 6 },
+    role: { type: String, enum: ['student', 'parent', 'educator', 'admin'], default: 'student' },
+    profilePicture: { type: String, default: 'defaultProfilePic.png' },
+    createdAt: { type: Date, default: Date.now },
+    isActive: { type: Boolean, default: true },
+    lastLogin: { type: Date },
     phoneNumber: {
         type: String,
         trim: true,
         validate: {
-            validator: function(v) {
-                return /^\+?\d{10,15}$/.test(v);
-            },
+            validator: function(v) { return /^\+?\d{10,15}$/.test(v); },
             message: props => `${props.value} is not a valid phone number!`
         }
-    },
-    address: {
-        type: String,
-        trim: true,
-    },
-    lastLogin: {
-        type: Date,
-    },
-    isActive: {
-        type: Boolean,
-        default: true,
-    },
-    notifications: [{
-        message: { type: String, required: true },
-        isRead: { type: Boolean, default: false },
-        createdAt: { type: Date, default: Date.now }
-    }],
-    profileCompleteness: {
-        type: Number,
-        default: 0,
     },
     preferences: {
         notificationSettings: {
             email: { type: Boolean, default: true },
             sms: { type: Boolean, default: false },
         },
-        contentVisibility: {
-            subjectPreferences: [{ type: String }],
-        },
+        contentVisibility: { subjectPreferences: [{ type: String }] },
+        languagePreferences: { type: String, default: 'en' },
     },
-    twoFactorAuth: {
-        isEnabled: { type: Boolean, default: false },
-        phoneNumber: {
-            type: String,
-            trim: true,
-            validate: {
-                validator: function(v) {
-                    return /^\+?\d{10,15}$/.test(v);
-                },
-                message: props => `${props.value} is not a valid phone number for 2FA!`
-            }
-        },
-    },
-    accountRecovery: {
-        securityQuestions: [{
-            question: { type: String, required: true },
-            answer: { type: String, required: true },
-        }],
-        alternateEmail: {
-            type: String,
-            validate: {
-                validator: function(v) {
-                    return /^\S+@\S+\.\S+$/.test(v);
-                },
-                message: props => `${props.value} is not a valid email!`
-            }
-        },
-    },
-    activityLog: [{
-        action: { type: String, required: true },
-        timestamp: { type: Date, default: Date.now },
-    }],
-    enrolledModules: [{
-        type: Schema.Types.ObjectId,
-        ref: 'LearningModule'
-    }],
-    completedLabs: [{ // Field for completed labs
-        type: Schema.Types.ObjectId,
-        ref: 'VirtualLab'
-    }],
-    badges: [{ // Field for user badges
-        badgeName: { type: String, required: true },
-        dateAwarded: { type: Date, default: Date.now }
-    }],
-    userLevel: { // User level
+    // References to other models
+    children: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    parent: { type: Schema.Types.ObjectId, ref: 'User' },
+    enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
+    completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
+    assessmentHistory: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],
+    learningGoals: [{ type: Schema.Types.ObjectId, ref: 'LearningGoal' }],
+    notifications: [{ type: Schema.Types.ObjectId, ref: 'Notification' }],
+    activityLog: [{ type: Schema.Types.ObjectId, ref: 'Activity' }],
+    feedback: [{ type: Schema.Types.ObjectId, ref: 'Feedback' }],
+    badges: [{ type: Schema.Types.ObjectId, ref: 'Badge' }],
+    userLevel: {
         type: String,
         enum: Object.values(USER_LEVELS),
         required: true,
     },
-    learningStyles: [{ // New field for learning styles
-        type: String,
-        enum: ['visual', 'auditory', 'kinesthetic'],
-        required: true,
-    }],
-    adaptiveLearningPath: { // New field for adaptive learning path
-        currentModule: { type: Schema.Types.ObjectId, ref: 'LearningModule' },
-        nextSuggestedModule: { type: Schema.Types.ObjectId, ref: 'LearningModule' },
-        lastAssessmentScore: { type: Number }
-    },
-    learningHistory: [{
-        contentId: { type: Schema.Types.ObjectId, ref: 'Content' },
-        completedAt: { type: Date, default: Date.now },
-        score: { type: Number },
-        interactions: [{
-            type: {
-                type: String,
-                enum: ['view', 'comment', 'like', 'share', 'timeSpent'],
-                required: true
-            },
-            timestamp: { type: Date, default: Date.now },
-            duration: { type: Number } // Duration in seconds, if applicable
-        }],
-    }],
 });
 
-// Middleware to hash password before saving
 userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) {
-        return next();
+    // Hash the password before saving
+    if (this.isModified('password')) {
+        this.password = await bcrypt.hash(this.password, 10);
     }
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
     next();
 });
 
-// Method to compare password
-userSchema.methods.comparePassword = async function(candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
-};
-
-// Export the User model
 const User = mongoose.model('User', userSchema);
 module.exports = User;
