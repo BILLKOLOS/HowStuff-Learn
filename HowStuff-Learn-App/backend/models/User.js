@@ -144,11 +144,11 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'LearningModule'
     }],
-    completedLabs: [{ // New field for completed labs
+    completedLabs: [{ // Field for completed labs
         type: Schema.Types.ObjectId,
         ref: 'VirtualLab'
     }],
-    badges: [{ // New field for user badges
+    badges: [{ // Field for user badges
         badgeName: { type: String, required: true },
         dateAwarded: { type: Date, default: Date.now }
     }],
@@ -157,6 +157,16 @@ const userSchema = new Schema({
         enum: Object.values(USER_LEVELS),
         required: true,
     },
+    learningStyles: [{ // New field for learning styles
+        type: String,
+        enum: ['visual', 'auditory', 'kinesthetic'],
+        required: true,
+    }],
+    adaptiveLearningPath: { // New field for adaptive learning path
+        currentModule: { type: Schema.Types.ObjectId, ref: 'LearningModule' },
+        nextSuggestedModule: { type: Schema.Types.ObjectId, ref: 'LearningModule' },
+        lastAssessmentScore: { type: Number }
+    },
     learningHistory: [{
         contentId: { type: Schema.Types.ObjectId, ref: 'Content' },
         completedAt: { type: Date, default: Date.now },
@@ -164,10 +174,11 @@ const userSchema = new Schema({
         interactions: [{
             type: {
                 type: String,
-                enum: ['view', 'comment', 'like', 'share'],
+                enum: ['view', 'comment', 'like', 'share', 'timeSpent'],
                 required: true
             },
-            timestamp: { type: Date, default: Date.now }
+            timestamp: { type: Date, default: Date.now },
+            duration: { type: Number } // Duration in seconds, if applicable
         }],
     }],
 });
