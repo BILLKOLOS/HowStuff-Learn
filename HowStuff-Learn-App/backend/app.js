@@ -52,16 +52,16 @@ const collaborationRoutes = require('./routes/collaborationRoutes'); // Collabor
 const communityRoutes = require('./routes/communityRoutes'); // Community interactions
 
 // Routes
-app.use('/api/auth', authRoutes); // For authentication-related routes
-app.use('/api/users', userRoutes); // Handles user registration and profiles
-app.use('/api/content', contentRoutes); // Fetch and manage educational content
-app.use('/api/feedback', feedbackRoutes); // Handle feedback from students/teachers
-app.use('/api/learning-path', learningPathRoutes); // Learning paths for different users
-app.use('/api/virtual-lectures', virtualLectureRoutes); // Virtual lecture management
-app.use('/api/payments', paymentRoutes); // For handling payments (MPESA, PayPal)
-app.use('/api/projects', projectRoutes); // For managing projects
-app.use('/api/collaboration', collaborationRoutes); // For collaboration features
-app.use('/api/community', communityRoutes); // For community interactions
+app.use('/auth', authRoutes); // For authentication-related routes
+app.use('/users', userRoutes); // Handles user registration and profiles
+app.use('/content', contentRoutes); // Fetch and manage educational content
+app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
+app.use('/learning-path', learningPathRoutes); // Learning paths for different users
+app.use('/virtual-lectures', virtualLectureRoutes); // Virtual lecture management
+app.use('/payments', paymentRoutes); // For handling payments (MPESA, PayPal)
+app.use('/projects', projectRoutes); // For managing projects
+app.use('/collaboration', collaborationRoutes); // For collaboration features
+app.use('/community', communityRoutes); // For community interactions
 
 // Error handling middleware
 app.use((err, req, res, next) => {

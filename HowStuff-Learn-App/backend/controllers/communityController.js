@@ -3,7 +3,7 @@ const User = require('../models/User');
 const notificationService = require('../utils/notificationService'); // For notifications related to posts
 
 // Create a new forum post
-exports.createPost = async (req, res) => {
+const createPost = async (req, res) => {
     try {
         const { title, content } = req.body;
         const userId = req.user.id;
@@ -17,30 +17,30 @@ exports.createPost = async (req, res) => {
 
         // Notify users about the new post (optional)
         const users = await User.find();
-        users.forEach(async (user) => {
+        await Promise.all(users.map(async (user) => {
             await notificationService.sendNewPostNotification(user.email, newPost);
-        });
+        }));
 
         res.status(201).json({ message: 'Post created successfully', post: newPost });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to create post', error });
+        res.status(500).json({ message: 'Failed to create post', error: error.message });
     }
 };
 
 // Get all forum posts
-exports.getAllPosts = async (req, res) => {
+const getAllPosts = async (req, res) => {
     try {
         const posts = await ForumPost.find().populate('author', 'name email');
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve posts', error });
+        res.status(500).json({ message: 'Failed to retrieve posts', error: error.message });
     }
 };
 
 // Get a single post by ID
-exports.getPostById = async (req, res) => {
+const getPostById = async (req, res) => {
     try {
         const { postId } = req.params;
         const post = await ForumPost.findById(postId).populate('author', 'name email');
@@ -52,12 +52,12 @@ exports.getPostById = async (req, res) => {
         res.status(200).json(post);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve post', error });
+        res.status(500).json({ message: 'Failed to retrieve post', error: error.message });
     }
 };
 
 // Update a forum post
-exports.updatePost = async (req, res) => {
+const updatePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const { title, content } = req.body;
@@ -75,12 +75,12 @@ exports.updatePost = async (req, res) => {
         res.status(200).json({ message: 'Post updated successfully', post: updatedPost });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to update post', error });
+        res.status(500).json({ message: 'Failed to update post', error: error.message });
     }
 };
 
 // Delete a forum post
-exports.deletePost = async (req, res) => {
+const deletePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const deletedPost = await ForumPost.findByIdAndDelete(postId);
@@ -92,12 +92,12 @@ exports.deletePost = async (req, res) => {
         res.status(200).json({ message: 'Post deleted successfully' });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to delete post', error });
+        res.status(500).json({ message: 'Failed to delete post', error: error.message });
     }
 };
 
 // Comment on a forum post
-exports.addComment = async (req, res) => {
+const addComment = async (req, res) => {
     try {
         const { postId } = req.params;
         const { comment } = req.body;
@@ -114,12 +114,12 @@ exports.addComment = async (req, res) => {
         res.status(201).json({ message: 'Comment added successfully', post });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to add comment', error });
+        res.status(500).json({ message: 'Failed to add comment', error: error.message });
     }
 };
 
 // Search posts by title or content
-exports.searchPosts = async (req, res) => {
+const searchPosts = async (req, res) => {
     try {
         const { query } = req.query; // Assuming the search term is passed as a query parameter
         const posts = await ForumPost.find({
@@ -132,12 +132,12 @@ exports.searchPosts = async (req, res) => {
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to search posts', error });
+        res.status(500).json({ message: 'Failed to search posts', error: error.message });
     }
 };
 
 // Get posts by author
-exports.getPostsByAuthor = async (req, res) => {
+const getPostsByAuthor = async (req, res) => {
     try {
         const { authorId } = req.params;
         const posts = await ForumPost.find({ author: authorId }).populate('author', 'name email');
@@ -149,23 +149,23 @@ exports.getPostsByAuthor = async (req, res) => {
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve posts by author', error });
+        res.status(500).json({ message: 'Failed to retrieve posts by author', error: error.message });
     }
 };
 
 // Get trending posts (e.g., based on number of comments)
-exports.getTrendingPosts = async (req, res) => {
+const getTrendingPosts = async (req, res) => {
     try {
         const posts = await ForumPost.find().sort({ 'comments.length': -1 }).limit(5).populate('author', 'name email');
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve trending posts', error });
+        res.status(500).json({ message: 'Failed to retrieve trending posts', error: error.message });
     }
 };
 
 // Like a post
-exports.likePost = async (req, res) => {
+const likePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const userId = req.user.id;
@@ -186,12 +186,12 @@ exports.likePost = async (req, res) => {
         res.status(200).json({ message: 'Post liked successfully', post });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to like post', error });
+        res.status(500).json({ message: 'Failed to like post', error: error.message });
     }
 };
 
 // Dislike a post
-exports.dislikePost = async (req, res) => {
+const dislikePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const userId = req.user.id;
@@ -212,18 +212,18 @@ exports.dislikePost = async (req, res) => {
         res.status(200).json({ message: 'Post disliked successfully', post });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to dislike post', error });
+        res.status(500).json({ message: 'Failed to dislike post', error: error.message });
     }
 };
 
 // Get posts with pagination
-exports.getPaginatedPosts = async (req, res) => {
+const getPaginatedPosts = async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query; // Default page 1 and limit 10
         const posts = await ForumPost.find()
             .populate('author', 'name email')
-            .skip((page - 1) * limit)
-            .limit(limit);
+            .skip((parseInt(page) - 1) * parseInt(limit))
+            .limit(parseInt(limit));
         
         const totalPosts = await ForumPost.countDocuments();
         res.status(200).json({
@@ -233,18 +233,33 @@ exports.getPaginatedPosts = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve paginated posts', error });
+        res.status(500).json({ message: 'Failed to retrieve paginated posts', error: error.message });
     }
 };
 
 // Get recent posts
-exports.getRecentPosts = async (req, res) => {
+const getRecentPosts = async (req, res) => {
     try {
         const posts = await ForumPost.find().sort({ createdAt: -1 }).limit(5).populate('author', 'name email');
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Failed to retrieve recent posts', error });
+        res.status(500).json({ message: 'Failed to retrieve recent posts', error: error.message });
     }
 };
 
+module.exports = {
+    createPost,
+    getAllPosts,
+    getPostById,
+    updatePost,
+    deletePost,
+    addComment,
+    searchPosts,
+    getPostsByAuthor,
+    getTrendingPosts,
+    likePost,
+    dislikePost,
+    getPaginatedPosts,
+    getRecentPosts
+};

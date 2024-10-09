@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const communityController = require('../controllers/communityController');
-const authMiddleware = require('../middlewares/authMiddleware');
+const authMiddleware = require('../middleware/authMiddleware');
+console.log('Community Controller:', communityController);
+
 
 // Create a new forum post
 router.post('/', authMiddleware, communityController.createPost);
@@ -43,4 +45,3 @@ router.get('/paginated', communityController.getPaginatedPosts);
 router.get('/recent', communityController.getRecentPosts);
 
 module.exports = router;
-
