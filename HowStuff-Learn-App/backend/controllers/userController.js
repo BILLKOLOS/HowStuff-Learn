@@ -8,7 +8,7 @@ const ResourceService = require('../utils/resourceService');
 const { adjustContentForUserLevel } = require('../utils/contentAdjustment'); // Import the utility function
 
 // User registration
-exports.register = async (req, res) => {
+const register = async (req, res) => {
     const { username, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -21,7 +21,7 @@ exports.register = async (req, res) => {
 };
 
 // User login
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { email, password } = req.body;
     try {
         const user = await User.findOne({ email });
@@ -38,7 +38,7 @@ exports.login = async (req, res) => {
 };
 
 // Create a child account
-exports.createChildAccount = async (req, res) => {
+const createChildAccount = async (req, res) => {
     const { username, email, password } = req.body;
     const userId = req.user.id;
     try {
@@ -57,7 +57,7 @@ exports.createChildAccount = async (req, res) => {
 };
 
 // Link child's account
-exports.linkChildAccount = async (req, res) => {
+const linkChildAccount = async (req, res) => {
     const { childAccount } = req.body;
     const userId = req.user.id;
     try {
@@ -71,7 +71,7 @@ exports.linkChildAccount = async (req, res) => {
 };
 
 // Unlink child's account
-exports.unlinkChildAccount = async (req, res) => {
+const unlinkChildAccount = async (req, res) => {
     const { childAccountId } = req.body;
     const userId = req.user.id;
     try {
@@ -85,7 +85,7 @@ exports.unlinkChildAccount = async (req, res) => {
 };
 
 // View child's accounts
-exports.viewChildAccounts = async (req, res) => {
+const viewChildAccounts = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findById(userId).populate('children');
@@ -96,7 +96,7 @@ exports.viewChildAccounts = async (req, res) => {
 };
 
 // Update user profile
-exports.updateProfile = async (req, res) => {
+const updateProfile = async (req, res) => {
     const { username, email, newPassword } = req.body;
     const userId = req.user.id;
     try {
@@ -119,7 +119,7 @@ exports.updateProfile = async (req, res) => {
 };
 
 // Delete user account
-exports.deleteAccount = async (req, res) => {
+const deleteAccount = async (req, res) => {
     const userId = req.user.id;
     try {
         await User.findByIdAndDelete(userId);
@@ -130,7 +130,7 @@ exports.deleteAccount = async (req, res) => {
 };
 
 // Create a formative assessment
-exports.createAssessment = async (req, res) => {
+const createAssessment = async (req, res) => {
     const { title, questions } = req.body;
     const userId = req.user.id;
     try {
@@ -143,7 +143,7 @@ exports.createAssessment = async (req, res) => {
 };
 
 // Take an assessment
-exports.takeAssessment = async (req, res) => {
+const takeAssessment = async (req, res) => {
     const { assessmentId, answers } = req.body;
     const userId = req.user.id;
     try {
@@ -178,7 +178,7 @@ const saveProgress = async (userId, assessmentId, feedback) => {
 };
 
 // Get assessment feedback for a student
-exports.getFeedback = async (req, res) => {
+const getFeedback = async (req, res) => {
     const userId = req.user.id;
     try {
         const feedbackEntries = await Progress.find({ userId }).populate('assessmentId');
@@ -189,7 +189,7 @@ exports.getFeedback = async (req, res) => {
 };
 
 // Set learning goals
-exports.setLearningGoals = async (req, res) => {
+const setLearningGoals = async (req, res) => {
     const { goals } = req.body;
     const userId = req.user.id;
     try {
@@ -203,7 +203,7 @@ exports.setLearningGoals = async (req, res) => {
 };
 
 // View learning goals
-exports.viewLearningGoals = async (req, res) => {
+const viewLearningGoals = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findById(userId);
@@ -214,7 +214,7 @@ exports.viewLearningGoals = async (req, res) => {
 };
 
 // View child's progress
-exports.viewChildProgress = async (req, res) => {
+const viewChildProgress = async (req, res) => {
     const { childId } = req.params;
     try {
         const childProgress = await Progress.find({ userId: childId }).populate('assessmentId');
@@ -225,7 +225,7 @@ exports.viewChildProgress = async (req, res) => {
 };
 
 // Get personalized learning recommendations
-exports.getLearningRecommendations = async (req, res) => {
+const getLearningRecommendations = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findById(userId);
@@ -237,7 +237,7 @@ exports.getLearningRecommendations = async (req, res) => {
 };
 
 // Track user achievements
-exports.getAchievements = async (req, res) => {
+const getAchievements = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findById(userId).populate('achievements');
@@ -248,7 +248,7 @@ exports.getAchievements = async (req, res) => {
 };
 
 // Send user notifications
-exports.sendNotification = async (req, res) => {
+const sendNotification = async (req, res) => {
     const { userId, message } = req.body;
     try {
         const user = await User.findById(userId);
@@ -261,7 +261,7 @@ exports.sendNotification = async (req, res) => {
 };
 
 // Set parental control restrictions
-exports.setParentalControls = async (req, res) => {
+const setParentalControls = async (req, res) => {
     const { childId, restrictions } = req.body;
     try {
         const child = await User.findById(childId);
@@ -274,7 +274,7 @@ exports.setParentalControls = async (req, res) => {
 };
 
 // Log self-reflection
-exports.logSelfReflection = async (req, res) => {
+const logSelfReflection = async (req, res) => {
     const { reflection } = req.body;
     const userId = req.user.id;
     try {
@@ -288,7 +288,7 @@ exports.logSelfReflection = async (req, res) => {
 };
 
 // Search resources
-exports.searchResources = async (req, res) => {
+const searchResources = async (req, res) => {
     const { query } = req.body;
     try {
         const resources = await ResourceService.searchResources(query);
@@ -299,7 +299,7 @@ exports.searchResources = async (req, res) => {
 };
 
 // Get user details
-exports.getUserDetails = async (req, res) => {
+const getUserDetails = async (req, res) => {
     const userId = req.user.id;
     try {
         const user = await User.findById(userId).populate('children');
@@ -324,7 +324,7 @@ module.exports = {
     getFeedback,
     setLearningGoals,
     viewLearningGoals,
-    viewChildProgress,
+    viewChigit,
     getLearningRecommendations,
     getAchievements,
     sendNotification,
