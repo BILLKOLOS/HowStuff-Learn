@@ -324,7 +324,7 @@ module.exports = {
     getFeedback,
     setLearningGoals,
     viewLearningGoals,
-    viewChigit,
+   //viewChigit,
     getLearningRecommendations,
     getAchievements,
     sendNotification,

@@ -1,12 +1,12 @@
 // Import necessary modules
 const Content = require('../models/Content');
-const User = require('../models/User'); // Import User model for role management
-const { fetchExternalResources } = require('../utils/apiServices');
+const User = require('../models/User');
+const { fetchExternalResources } = require('../utils/apiService'); // Ensure this matches your updated import
 const { logEngagementData, getRecommendations } = require('../utils/aiUtils');
-const { formatContentList, generateContentWithAI } = require('../utils/formattingUtils'); // Updated to include generateContentWithAI
+const { formatContentList, generateContentWithAI } = require('../utils/formattingUtils');
 
 // Create new educational content
-exports.createContent = async (req, res) => {
+const createContent = async (req, res) => {
     const { title, description, type, contentLink, subject, grade } = req.body;
 
     try {
@@ -36,8 +36,8 @@ exports.createContent = async (req, res) => {
     }
 };
 
-// Retrieve educational content with optional search, filtering, and pagination
-exports.getContent = async (req, res) => {
+// Retrieve educational content
+const getContent = async (req, res) => {
     const { subject, grade, search, type, userLevel, page = 1, limit = 10 } = req.query;
     const query = {};
 
@@ -73,8 +73,8 @@ exports.getContent = async (req, res) => {
     }
 };
 
-// Update existing content with versioning
-exports.updateContent = async (req, res) => {
+// Update existing content
+const updateContent = async (req, res) => {
     const { contentId } = req.params;
     const { title, description, type, contentLink, subject, grade } = req.body;
 
@@ -103,7 +103,7 @@ exports.updateContent = async (req, res) => {
 };
 
 // Soft delete content
-exports.softDeleteContent = async (req, res) => {
+const softDeleteContent = async (req, res) => {
     const { contentId } = req.params;
 
     try {
@@ -117,7 +117,7 @@ exports.softDeleteContent = async (req, res) => {
 };
 
 // Track content engagement
-exports.trackContentEngagement = async (req, res) => {
+const trackContentEngagement = async (req, res) => {
     const { contentId } = req.params;
 
     try {
@@ -137,7 +137,7 @@ exports.trackContentEngagement = async (req, res) => {
 };
 
 // Recommend related content
-exports.recommendContent = async (req, res) => {
+const recommendContent = async (req, res) => {
     const { contentId } = req.params;
 
     try {
@@ -151,4 +151,26 @@ exports.recommendContent = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Error recommending content', error: error.message });
     }
+};
+
+// Rate content
+const rateContent = async (req, res) => {
+    // Implementation for rating content
+};
+
+// Get average rating for content
+const getAverageRating = async (req, res) => {
+    // Implementation for fetching average rating
+};
+
+// Export the functions
+module.exports = {
+    createContent,
+    getContent,
+    updateContent,
+    softDeleteContent,
+    trackContentEngagement,
+    recommendContent,
+    rateContent,
+    getAverageRating,
 };

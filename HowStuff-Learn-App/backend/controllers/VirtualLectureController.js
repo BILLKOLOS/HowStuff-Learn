@@ -242,7 +242,8 @@ class VirtualLectureController {
     }
 
     // Record lecture session
-    async recordLecture(req, res) {
+      // Record lecture session
+      async recordLecture(req, res) {
         try {
             const lectureId = req.params.id;
             const lecture = await Lecture.findById(lectureId);
@@ -255,5 +256,27 @@ class VirtualLectureController {
 
             res.status(200).json({ message: 'Recording started successfully' });
         } catch (error) {
-            res.status(500).json({ message: 'Error
+            res.status(500).json({ message: 'Error starting recording', error });
+        }
+    }
 
+    // Stop recording lecture session
+    async stopRecording(req, res) {
+        try {
+            const lectureId = req.params.id;
+            const lecture = await Lecture.findById(lectureId);
+            if (!lecture) {
+                return res.status(404).json({ message: 'Lecture not found' });
+            }
+            // Logic to stop recording the lecture
+            lecture.isRecording = false; // Assuming you have an isRecording field
+            await lecture.save();
+
+            res.status(200).json({ message: 'Recording stopped successfully' });
+        } catch (error) {
+            res.status(500).json({ message: 'Error stopping recording', error });
+        }
+    }
+}
+
+module.exports = new VirtualLectureController();
