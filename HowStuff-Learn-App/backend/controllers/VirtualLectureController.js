@@ -1,7 +1,8 @@
-const Lecture = require('../models/Lecture');
+const Lecture = require('../models/Lecture'); 
 const User = require('../models/User');
 const Feedback = require('../models/Feedback');
 const nodemailer = require('nodemailer'); // Assuming you use Nodemailer for sending emails
+const auth = require('../middleware/authMiddleware'); // Updated import
 
 class VirtualLectureController {
     // Create a new virtual lecture
@@ -165,8 +166,6 @@ class VirtualLectureController {
             if (!lecture) {
                 return res.status(404).json({ message: 'Lecture not found' });
             }
-            // Logic to enable Q&A features for the lecture
-            // This could involve changing a status flag in the database
             lecture.liveQAEnabled = true;
             await lecture.save();
 
@@ -185,8 +184,6 @@ class VirtualLectureController {
                 return res.status(404).json({ message: 'Lecture or participant not found' });
             }
 
-            // Logic to mute the participant in the lecture interface
-            // You can maintain a separate field for muted participants
             if (!lecture.mutedParticipants) {
                 lecture.mutedParticipants = [];
             }
@@ -210,7 +207,6 @@ class VirtualLectureController {
                 return res.status(404).json({ message: 'Lecture or participant not found' });
             }
 
-            // Logic to unmute the participant in the lecture interface
             if (lecture.mutedParticipants) {
                 lecture.mutedParticipants = lecture.mutedParticipants.filter(id => id !== userId);
                 await lecture.save();
@@ -231,7 +227,6 @@ class VirtualLectureController {
                 return res.status(404).json({ message: 'Lecture not found' });
             }
 
-            // Logic to optimize media settings based on the quality parameter
             lecture.mediaQuality = quality;
             await lecture.save();
 
@@ -242,15 +237,14 @@ class VirtualLectureController {
     }
 
     // Record lecture session
-      // Record lecture session
-      async recordLecture(req, res) {
+    async recordLecture(req, res) {
         try {
             const lectureId = req.params.id;
             const lecture = await Lecture.findById(lectureId);
             if (!lecture) {
                 return res.status(404).json({ message: 'Lecture not found' });
             }
-            // Logic to start recording the lecture
+
             lecture.isRecording = true; // Assuming you have an isRecording field
             await lecture.save();
 
@@ -268,15 +262,37 @@ class VirtualLectureController {
             if (!lecture) {
                 return res.status(404).json({ message: 'Lecture not found' });
             }
-            // Logic to stop recording the lecture
+
             lecture.isRecording = false; // Assuming you have an isRecording field
             await lecture.save();
 
-            res.status(200).json({ message: 'Recording stopped successfully' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error stopping recording', error });
+            res.status(200).json({ message
+                : 'Recording stopped successfully' });
+            } catch (error) {
+                res.status(500).json({ message: 'Error stopping recording', error });
+            }
+        }
+    
+        // Get lecture recording
+        async getLectureRecording(req, res) {
+            try {
+                const lectureId = req.params.id;
+                const lecture = await Lecture.findById(lectureId);
+                if (!lecture) {
+                    return res.status(404).json({ message: 'Lecture not found' });
+                }
+    
+                // Assuming the lecture has a recording URL or file path
+                if (!lecture.recordingUrl) {
+                    return res.status(404).json({ message: 'Recording not available' });
+                }
+    
+                res.status(200).json({ recordingUrl: lecture.recordingUrl });
+            } catch (error) {
+                res.status(500).json({ message: 'Error retrieving lecture recording', error });
+            }
         }
     }
-}
-
-module.exports = new VirtualLectureController();
+    
+    module.exports = new VirtualLectureController();
+    

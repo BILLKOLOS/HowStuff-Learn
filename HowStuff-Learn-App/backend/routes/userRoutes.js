@@ -5,10 +5,10 @@ const authMiddleware = require('../middleware/authMiddleware');
 const progressController = require('../controllers/progressController');
 
 // User registration
-router.post('/register', userController.register); // Route for registering a new user
+router.post('/register', userController.register);
 
 // User login
-router.post('/login', userController.login); // Route for logging in a user
+router.post('/login', userController.login);
 
 // Link a child's account to the parent account
 router.post('/link-child', authMiddleware.verifyToken, userController.linkChildAccount);
@@ -28,21 +28,21 @@ router.put('/profile', authMiddleware.verifyToken, userController.updateProfile)
 // Delete the user's account
 router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount);
 
-// Search for educational resources (using OpenAI and/or Wikipedia APIs)
+// Search for educational resources
 router.get('/search', authMiddleware.verifyToken, userController.searchResources);
 
 // Save the user's search history
-router.post('/search/history', authMiddleware.verifyToken, userController.saveSearchHistory);
+// router.post('/search/history', authMiddleware.verifyToken, userController.saveSearchHistory);
 
 // Retrieve the user's search history
-router.get('/search/history', authMiddleware.verifyToken, userController.getSearchHistory);
+// router.get('/search/history', authMiddleware.verifyToken, userController.getSearchHistory);
 
 // Progress management routes
-router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress); // Update user progress
-router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport); // Get progress report
-router.post('/progress/goals', authMiddleware.verifyToken, progressController.setLearningGoals); // Set learning goals
-router.get('/progress/details/:userId', authMiddleware.verifyToken, progressController.getDetailedProgressReport); // Get detailed progress report
-router.get('/progress/behavior/:userId', authMiddleware.verifyToken, progressController.analyzeUserBehavior); // Analyze user behavior
-router.get('/progress/historical/:userId', authMiddleware.verifyToken, progressController.getHistoricalProgressTrends); // Get historical progress trends
+router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);
+router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport);
+router.post('/progress/goals', authMiddleware.verifyToken, progressController.setLearningGoals);
+router.get('/progress/details/:userId', authMiddleware.verifyToken, progressController.getDetailedProgressReport);
+router.get('/progress/behavior/:userId', authMiddleware.verifyToken, progressController.analyzeUserBehavior);
+router.get('/progress/historical/:userId', authMiddleware.verifyToken, progressController.getHistoricalProgressTrends);
 
 module.exports = router;
