@@ -152,7 +152,6 @@ const generateLearningPath = async (user) => {
 // Function to predict attendance based on historical data
 const predictAttendance = async (lectureId) => {
     try {
-        // Mock prediction logic; in a real scenario, this would involve machine learning models
         const response = await axios.post(`${AI_SERVICE_ENDPOINT}/predict-attendance`, { lectureId });
         return response.data; // Return prediction results
     } catch (error) {

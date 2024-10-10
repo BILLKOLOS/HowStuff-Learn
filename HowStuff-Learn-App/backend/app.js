@@ -52,14 +52,14 @@ const collaborationRoutes = require('./routes/collaborationRoutes'); // Collabor
 const communityRoutes = require('./routes/communityRoutes'); // Community interactions
 
 // Routes
-app.use('/auth', authRoutes); // For authentication-related routes
+//app.use('/auth', authRoutes); // For authentication-related routes
 app.use('/users', userRoutes); // Handles user registration and profiles
 app.use('/content', contentRoutes); // Fetch and manage educational content
-app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
-app.use('/learning-path', learningPathRoutes); // Learning paths for different users
+//app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
+//app.use('/learning-path', learningPathRoutes); // Learning paths for different users
 app.use('/virtual-lectures', virtualLectureRoutes); // Virtual lecture management
 app.use('/payments', paymentRoutes); // For handling payments (MPESA, PayPal)
-app.use('/projects', projectRoutes); // For managing projects
+//app.use('/projects', projectRoutes); // For managing projects
 app.use('/collaboration', collaborationRoutes); // For collaboration features
 app.use('/community', communityRoutes); // For community interactions
 

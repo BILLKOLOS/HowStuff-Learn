@@ -1,41 +1,88 @@
 // Import necessary modules
 const User = require('../models/User');
-const Assessment = require('../models/Assessment');
-const Progress = require('../models/Progress');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const ResourceService = require('../utils/resourceService');
-const { adjustContentForUserLevel } = require('../utils/contentAdjustment'); // Import the utility function
+const argon2 = require('argon2'); // Import argon2
+const bcrypt = require('bcrypt');
 
-// User registration
+// Register function
 const register = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, userLevel } = req.body;
+
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, email, password: hashedPassword });
+        if (!userLevel) {
+            return res.status(400).json({ message: "userLevel is required." });
+        }
+
+        // Log the password before hashing for debugging
+        console.log("Registering user with password:", password);
+
+        // Hash the password using argon2
+        const hashedPassword = await argon2.hash(password); // Argon2 automatically handles salt
+        console.log("Hashed password:", hashedPassword); // Log the hashed password
+
+        // Create a new user instance with the hashed password
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword, // Store the hashed password
+            userLevel
+        });
+
+        // Save the new user to the database
         await newUser.save();
         res.status(201).json({ message: 'User registered successfully', user: newUser });
     } catch (error) {
+        console.error("Error during registration:", error);
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
 
-// User login
+// Login function
 const login = async (req, res) => {
     const { email, password } = req.body;
+    console.log("Login attempt for:", { email, password });
+
     try {
+        // Find the user by email
         const user = await User.findOne({ email });
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        console.log("User found:", user);
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
 
-        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        // Log the hashed password retrieved from the database
+        console.log("User's hashed password from database:", user.password);
+
+        let isMatch = false;
+
+        // Check if the password is hashed using bcrypt or argon2
+        if (user.password.startsWith('$2b$')) {
+            // Bcrypt password
+            console.log("Password hashed with bcrypt.");
+            isMatch = await bcrypt.compare(password, user.password);
+        } else if (user.password.startsWith('$argon2')) {
+            // Argon2 password
+            console.log("Password hashed with argon2.");
+            isMatch = await argon2.verify(user.password, password);
+        }
+
+        console.log("Password match:", isMatch);
+
+        if (!isMatch) {
+            console.error("Passwords do not match for user:", email);
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Create and sign a JWT token
+        const token = jwt.sign({ userId: user._id, role: user.userLevel }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
+        console.error("Error during login:", error);
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
+
 
 // Create a child account
 const createChildAccount = async (req, res) => {
@@ -228,7 +275,7 @@ const viewChildProgress = async (req, res) => {
 const getLearningRecommendations = async (req, res) => {
     const userId = req.user.id;
     try {
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).populate('progress');
         const recommendations = await ResourceService.getRecommendations(user.learningGoals, user.progress);
         res.status(200).json({ message: 'Learning recommendations retrieved successfully', recommendations });
     } catch (error) {
@@ -324,7 +371,7 @@ module.exports = {
     getFeedback,
     setLearningGoals,
     viewLearningGoals,
-   //viewChigit,
+    viewChildProgress,
     getLearningRecommendations,
     getAchievements,
     sendNotification,

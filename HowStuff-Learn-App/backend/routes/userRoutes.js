@@ -31,12 +31,6 @@ router.delete('/account', authMiddleware.verifyToken, userController.deleteAccou
 // Search for educational resources
 router.get('/search', authMiddleware.verifyToken, userController.searchResources);
 
-// Save the user's search history
-// router.post('/search/history', authMiddleware.verifyToken, userController.saveSearchHistory);
-
-// Retrieve the user's search history
-// router.get('/search/history', authMiddleware.verifyToken, userController.getSearchHistory);
-
 // Progress management routes
 router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);
 router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport);

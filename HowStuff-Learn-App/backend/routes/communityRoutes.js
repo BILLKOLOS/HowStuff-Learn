@@ -6,7 +6,7 @@ console.log('Community Controller:', communityController);
 
 
 // Create a new forum post
-router.post('/', authMiddleware, communityController.createPost);
+router.post('/', communityController.createPost);
 
 // Get all forum posts
 router.get('/', communityController.getAllPosts);
@@ -15,13 +15,13 @@ router.get('/', communityController.getAllPosts);
 router.get('/:postId', communityController.getPostById);
 
 // Update a forum post
-router.put('/:postId', authMiddleware, communityController.updatePost);
+router.put('/:postId', communityController.updatePost);
 
 // Delete a forum post
-router.delete('/:postId', authMiddleware, communityController.deletePost);
+router.delete('/:postId', communityController.deletePost);
 
 // Comment on a forum post
-router.post('/:postId/comments', authMiddleware, communityController.addComment);
+router.post('/:postId/comments', communityController.addComment);
 
 // Search posts by title or content
 router.get('/search', communityController.searchPosts);
@@ -33,10 +33,10 @@ router.get('/author/:authorId', communityController.getPostsByAuthor);
 router.get('/trending', communityController.getTrendingPosts);
 
 // Like a post
-router.post('/:postId/like', authMiddleware, communityController.likePost);
+router.post('/:postId/like', communityController.likePost);
 
 // Dislike a post
-router.post('/:postId/dislike', authMiddleware, communityController.dislikePost);
+router.post('/:postId/dislike', communityController.dislikePost);
 
 // Get paginated posts
 router.get('/paginated', communityController.getPaginatedPosts);
