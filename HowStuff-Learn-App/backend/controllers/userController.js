@@ -3,6 +3,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const argon2 = require('argon2'); // Import argon2
 const bcrypt = require('bcrypt');
+require('dotenv').config();
 
 // Register function
 const register = async (req, res) => {
@@ -24,7 +25,7 @@ const register = async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password: hashedPassword, // Store the hashed password
+            password, // Store the password
             userLevel
         });
 
