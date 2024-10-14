@@ -1,0 +1,85 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #fbe9e7; /* Soft peach background */
+}
+
+h1, h2 {
+    color: #d84315; /* Deep orange */
+    text-align: center;
+}
+
+.login-container, .register-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    margin: 0 auto; /* Center the container */
+    padding: 20px;
+    background-color: #ffffff; /* White background for the form */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Input styles */
+input {
+    padding: 10px;
+    margin: 5px 0 15px 0;
+    border: 1px solid #ffccbc; /* Light peach border */
+    border-radius: 4px;
+    transition: border-color 0.3s; /* Transition effect for border */
+}
+
+input:focus {
+    border-color: #d84315; /* Deep orange border on focus */
+    outline: none; /* Remove default outline */
+}
+
+/* Button styles */
+button {
+    padding: 10px;
+    background-color: #ff5722; /* Bright orange button */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s; /* Transition effects */
+}
+
+button:hover {
+    background-color: #d84315; /* Darker orange on hover */
+    transform: translateY(-2px); /* Lift effect */
+}
+
+/* Button focus state */
+button:focus {
+    outline: none;
+    box-shadow: 0 0 4px 2px rgba(216, 67, 21, 0.3); /* Focus glow effect */
+}
+
+/* Additional form spacing and alignment */
+form input {
+    font-size: 16px;
+}
+
+button {
+    font-size: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    .login-container, .register-container {
+        width: 90%; /* Make form responsive */
+    }
+}

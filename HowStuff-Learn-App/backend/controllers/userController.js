@@ -1,4 +1,3 @@
-// Import necessary modules
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const argon2 = require('argon2'); // Import argon2
@@ -25,7 +24,7 @@ const register = async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password, // Store the password
+            password: hashedPassword, // Store the hashed password
             userLevel
         });
 
@@ -84,25 +83,29 @@ const login = async (req, res) => {
     }
 };
 
-
-// Create a child account
-const createChildAccount = async (req, res) => {
-    const { username, email, password } = req.body;
-    const userId = req.user.id;
+// Get user profile function
+const getProfile = async (req, res) => {
+    const userId = req.user.id; // Assuming the user ID is stored in the token
+    
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newChild = new User({ username, email, password: hashedPassword, role: 'child' });
-        await newChild.save();
-
-        const user = await User.findById(userId);
-        user.children.push(newChild._id);
-        await user.save();
-
-        res.status(201).json({ message: 'Child account created successfully', child: newChild });
+        const user = await User.findById(userId).select('-password'); // Exclude password from the result
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json(user);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating child account', error: error.message });
+        console.error("Error fetching user profile:", error);
+        res.status(500).json({ message: 'Error fetching user profile', error: error.message });
     }
 };
+
+// Export the functions
+module.exports = {
+    register,
+    login,
+    getProfile,
+};
+
 
 // Link child's account
 const linkChildAccount = async (req, res) => {
@@ -359,6 +362,7 @@ const getUserDetails = async (req, res) => {
 
 // Export all user controller functions
 module.exports = {
+    getProfile,
     register,
     login,
     createChildAccount,

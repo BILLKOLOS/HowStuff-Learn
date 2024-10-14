@@ -31,6 +31,9 @@ router.delete('/account', authMiddleware.verifyToken, userController.deleteAccou
 // Search for educational resources
 router.get('/search', authMiddleware.verifyToken, userController.searchResources);
 
+// View user's profile
+router.get('/profile', authMiddleware.verifyToken, userController.getProfile); // New route to get user profile
+
 // Progress management routes
 router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);
 router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport);
