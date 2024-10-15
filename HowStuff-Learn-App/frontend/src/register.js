@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './css/styles.css'; // Ensure you import the styles
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import './css/styles.css';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Register = () => {
   });
 
   const { username, email, password, userLevel } = formData;
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,10 +23,18 @@ const Register = () => {
     try {
       const res = await axios.post('http://localhost:5000/users/register', formData);
       alert('User registered successfully!');
+      
+      // Check if redirectUrl is in the response and navigate accordingly
+      if (res.data.redirectUrl) {
+        navigate(res.data.redirectUrl); // Redirect based on server response
+      } else {
+        navigate('/dashboard'); // Default redirection if no redirectUrl is provided
+      }
+
       console.log(res.data);
     } catch (error) {
-      alert('Error during registration');
-      console.error(error.response.data);
+      alert('Error during registration: ' + (error.response?.data?.error || 'An unexpected error occurred'));
+      console.error(error.response?.data || error);
     }
   };
 
@@ -56,14 +66,16 @@ const Register = () => {
           placeholder="Password" 
           required 
         />
-        <input 
-          type="text" 
+        <select 
           name="userLevel" 
           value={userLevel} 
           onChange={handleChange} 
-          placeholder="User Level" 
-          required 
-        />
+          required
+        >
+          <option value="">Select User Level</option>
+          <option value="admin">Admin</option>
+          <option value="user">User</option>
+        </select>
         <button type="submit">Register</button>
       </form>
     </div>
