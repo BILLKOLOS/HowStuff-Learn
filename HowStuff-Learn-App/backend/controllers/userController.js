@@ -24,7 +24,7 @@ const register = async (req, res) => {
         const newUser = new User({
             username,
             email,
-            password: hashedPassword, // Store the hashed password
+            password, // Store the hashed password
             userLevel
         });
 
@@ -106,6 +106,24 @@ module.exports = {
     getProfile,
 };
 
+// Create a child account
+const createChildAccount = async (req, res) => {
+    const { username, email, password } = req.body;
+    const userId = req.user.id;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newChild = new User({ username, email, password: hashedPassword, role: 'child' });
+        await newChild.save();
+
+        const user = await User.findById(userId);
+        user.children.push(newChild._id);
+        await user.save();
+
+        res.status(201).json({ message: 'Child account created successfully', child: newChild });
+    } catch (error) {
+        res.status(500).json({ message: 'Error creating child account', error: error.message });
+    }
+};
 
 // Link child's account
 const linkChildAccount = async (req, res) => {
