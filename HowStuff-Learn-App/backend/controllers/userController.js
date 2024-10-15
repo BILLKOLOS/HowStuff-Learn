@@ -4,7 +4,7 @@ const argon2 = require('argon2'); // Import argon2
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-// Register function
+// Register function with auto-login and redirection
 const register = async (req, res) => {
     const { username, email, password, userLevel } = req.body;
 
@@ -13,31 +13,39 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "userLevel is required." });
         }
 
-        // Log the password before hashing for debugging
         console.log("Registering user with password:", password);
 
         // Hash the password using argon2
-        const hashedPassword = await argon2.hash(password); // Argon2 automatically handles salt
-        console.log("Hashed password:", hashedPassword); // Log the hashed password
+        const hashedPassword = await argon2.hash(password);
+        console.log("Hashed password:", hashedPassword);
 
         // Create a new user instance with the hashed password
         const newUser = new User({
             username,
             email,
-            password: hashedPassword, // Store the hashed password
+            password: hashedPassword,
             userLevel
         });
 
         // Save the new user to the database
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+
+        // Automatically log in the user and generate a JWT token
+        const token = jwt.sign({ userId: newUser._id, role: newUser.userLevel }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        res.status(201).json({
+            message: 'User registered successfully',
+            user: newUser,
+            token, // Send the token
+            redirectUrl: '/dashboard', // Redirect URL after successful registration
+        });
     } catch (error) {
         console.error("Error during registration:", error);
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
 
-// Login function
+// Login function with redirection
 const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("Login attempt for:", { email, password });
@@ -51,18 +59,15 @@ const login = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Log the hashed password retrieved from the database
         console.log("User's hashed password from database:", user.password);
 
         let isMatch = false;
 
         // Check if the password is hashed using bcrypt or argon2
         if (user.password.startsWith('$2b$')) {
-            // Bcrypt password
             console.log("Password hashed with bcrypt.");
             isMatch = await bcrypt.compare(password, user.password);
         } else if (user.password.startsWith('$argon2')) {
-            // Argon2 password
             console.log("Password hashed with argon2.");
             isMatch = await argon2.verify(user.password, password);
         }
@@ -76,14 +81,20 @@ const login = async (req, res) => {
 
         // Create and sign a JWT token
         const token = jwt.sign({ userId: user._id, role: user.userLevel }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Login successful', token });
+
+        // Send the token and redirect URL for frontend to handle the redirection
+        res.status(200).json({
+            message: 'Login successful',
+            token, // Send the token
+            redirectUrl: '/dashboard', // Redirect URL after successful login
+        });
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
 
-// Get user profile function
+// Get user profile function (no changes needed here)
 const getProfile = async (req, res) => {
     const userId = req.user.id; // Assuming the user ID is stored in the token
     
@@ -99,13 +110,11 @@ const getProfile = async (req, res) => {
     }
 };
 
-// Export the functions
 module.exports = {
     register,
     login,
     getProfile,
 };
-
 
 // Link child's account
 const linkChildAccount = async (req, res) => {
