@@ -2,7 +2,7 @@
 const LearningPath = require('../models/LearningPath');
 const User = require('../models/User');
 const Assessment = require('../models/Assessment'); // To track assessments related to learning paths
-const RecommendationService = require('../services/RecommendationService'); // For AI-based recommendations
+const aiUtils = require('../utils/aiUtils'); // Updated to use aiUtils
 const { validateLearningPath } = require('../validators/learningPathValidator'); // Input validation
 
 // Create a new learning path
@@ -104,7 +104,7 @@ exports.getAIRecommendations = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const recommendations = await RecommendationService.getRecommendations(userId);
+        const recommendations = await aiUtils.getRecommendations(userId); // Updated to use aiUtils
         res.status(200).json(recommendations);
     } catch (err) {
         res.status(500).json({ message: 'Error generating recommendations', error: err.message });
@@ -123,7 +123,7 @@ exports.trackUserProgress = async (req, res) => {
             return res.status(404).json({ message: 'Learning path not found' });
         }
 
-        // Assuming `progress` is an array of assessment IDs in the user model
+        // Assuming progress is an array of assessment IDs in the user model
         const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -203,7 +203,7 @@ exports.recommendLearningPaths = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const recommendations = await RecommendationService.getUserRecommendations(userId);
+        const recommendations = await aiUtils.getUserRecommendations(userId); // Updated to use aiUtils
         res.status(200).json(recommendations);
     } catch (err) {
         res.status(500).json({ message: 'Error generating recommendations', error: err.message });

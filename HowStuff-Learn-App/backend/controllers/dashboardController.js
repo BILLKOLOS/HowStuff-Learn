@@ -1,4 +1,3 @@
-// dashboardController.js
 const Lecture = require('../models/Lecture'); // Updated model name
 const Quiz = require('../models/Quiz'); // Updated model name
 const User = require('../models/User'); // Updated model name
@@ -19,10 +18,9 @@ const getUserNotifications = async (userId) => {
 };
 
 // Controller to get the dashboard data
-exports.getDashboard = async (req, res) => {
+const getDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
-
         // Fetch upcoming and live lectures (include AR/VR flagged lessons)
         const upcomingLectures = await Lecture.find({
             attendees: userId,
@@ -67,10 +65,14 @@ exports.getDashboard = async (req, res) => {
             activityFeed,
             notifications,
             learningPaths, // Include learning paths in the response
-            arvrModules: { upcomingLectures, recentQuizzes, suggestedResources }, // Send AR/VR data
+            arvrModules: { upcomingLectures, recentQuizzes, suggestedResources } // Send AR/VR data
         });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Failed to load dashboard data', error: err.message });
     }
+};
+
+module.exports = {
+    getDashboard
 };

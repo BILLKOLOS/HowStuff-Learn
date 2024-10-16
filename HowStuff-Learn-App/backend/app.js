@@ -1,5 +1,3 @@
-// app.js
-
 // Import necessary modules
 const express = require('express');
 const mongoose = require('mongoose');
@@ -23,10 +21,7 @@ app.use(cors());
 app.use(morgan('dev'));
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected'))
     .catch((err) => console.log('MongoDB connection error:', err));
 
@@ -36,7 +31,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-    cookie: { secure: process.env.NODE_ENV === 'production' }, // Set to true for HTTPS in production
+    cookie: { secure: process.env.NODE_ENV === 'production' },
 }));
 
 // Import routes
@@ -50,18 +45,20 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const collaborationRoutes = require('./routes/collaborationRoutes');
 const communityRoutes = require('./routes/communityRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
-// Routes
-app.use('/auth', authRoutes); // For authentication-related routes
-app.use('/users', userRoutes); // Handles user registration and profiles
-app.use('/content', contentRoutes); // Fetch and manage educational content
-app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
-app.use('/learning-path', learningPathRoutes); // Learning paths for different users
-app.use('/virtual-lectures', virtualLectureRoutes); // Virtual lecture management
-app.use('/payments', paymentRoutes); // For handling payments (MPESA, PayPal)
-app.use('/projects', projectRoutes); // For managing projects
-app.use('/collaboration', collaborationRoutes); // For collaboration features
-app.use('/community', communityRoutes); // For community interactions
+// Use routes
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+//app.use('/content', contentRoutes);
+//app.use('/feedback', feedbackRoutes);
+//app.use('/learning-path', learningPathRoutes);
+//app.use('/virtual-lectures', virtualLectureRoutes);
+//app.use('/payments', paymentRoutes);
+//app.use('/projects', projectRoutes);
+//app.use('/collaboration', collaborationRoutes);
+//app.use('/community', communityRoutes);
+app.use('/', dashboardRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

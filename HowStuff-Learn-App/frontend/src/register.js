@@ -3,6 +3,16 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import './css/styles.css';
 
+const USER_LEVELS = {
+  KINDERGARTEN: 'kindergarten',
+  PRIMARY: 'primary',
+  JUNIOR_SECONDARY: 'junior secondary',
+  HIGH_SCHOOL: 'high school',
+  COLLEGE: 'college',
+  UNIVERSITY: 'university',
+  SPECIALIZED: 'specialized education',
+};
+
 const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
@@ -21,17 +31,9 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/users/register', formData);
+      await axios.post('http://localhost:5000/users/register', formData);
       alert('User registered successfully!');
-      
-      // Check if redirectUrl is in the response and navigate accordingly
-      if (res.data.redirectUrl) {
-        navigate(res.data.redirectUrl); // Redirect based on server response
-      } else {
-        navigate('/dashboard'); // Default redirection if no redirectUrl is provided
-      }
-
-      console.log(res.data);
+      navigate('/'); // Navigate to login page after successful registration
     } catch (error) {
       alert('Error during registration: ' + (error.response?.data?.error || 'An unexpected error occurred'));
       console.error(error.response?.data || error);
@@ -73,8 +75,9 @@ const Register = () => {
           required
         >
           <option value="">Select User Level</option>
-          <option value="admin">Admin</option>
-          <option value="user">User</option>
+          {Object.entries(USER_LEVELS).map(([key, value]) => (
+            <option key={key} value={value}>{value.replace(/_/g, ' ')}</option>
+          ))}
         </select>
         <button type="submit">Register</button>
       </form>

@@ -22,15 +22,7 @@ const Login = () => {
       const res = await axios.post('http://localhost:5000/users/login', formData);
       localStorage.setItem('token', res.data.token); // Save token to localStorage
       alert('Login successful!');
-
-      // Check if redirectUrl is in the response and navigate accordingly
-      if (res.data.redirectUrl) {
-        navigate(res.data.redirectUrl); // Redirect based on server response
-      } else {
-        navigate('/dashboard'); // Default redirection if no redirectUrl is provided
-      }
-
-      console.log(res.data);
+      navigate('/dashboard'); // Redirect to dashboard after login
     } catch (error) {
       alert('Error during login: ' + (error.response?.data?.error || 'An unexpected error occurred'));
       console.error(error.response?.data || error);

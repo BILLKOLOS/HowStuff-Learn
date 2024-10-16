@@ -1,24 +1,24 @@
-const mongoose = require('mongoose'); 
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const bcrypt = require('bcrypt');
 const { USER_LEVELS } = require('../utils/aiUtils'); // Ensure USER_LEVELS is defined properly
 
 const userSchema = new Schema({
     username: { type: String, required: true, unique: true, trim: true },
-    email: { 
-        type: String, 
-        required: true, 
-        unique: true, 
-        trim: true, 
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
         lowercase: true,
         validate: {
             validator: function(v) { return /^\S+@\S+\.\S+$/.test(v); },
             message: props => `${props.value} is not a valid email!`
         }
     },
-    password: { 
-        type: String, 
-        required: true, 
+    password: {
+        type: String,
+        required: true,
         minlength: 6,
         validate: {
             validator: function(v) { return /(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/.test(v); },
@@ -38,7 +38,6 @@ const userSchema = new Schema({
             message: props => `${props.value} is not a valid phone number!`
         }
     },
-    
     // New Preferences Section (ageGroup, preferredSubjects, learningGoals)
     preferences: {
         notificationSettings: {
@@ -47,16 +46,13 @@ const userSchema = new Schema({
         },
         contentVisibility: { subjectPreferences: [{ type: String }] },
         languagePreferences: { type: String, default: 'en' },
-        
-        // New fields for user preferences
         ageGroup: { type: String, enum: ['child', 'teen', 'adult'], required: false }, // Age group preference
         preferredSubjects: [{ type: String }], // Array of subjects user is interested in
         learningGoals: { type: String }, // Learning goals description
     },
-    
     // References to other models
     children: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    parent: { type: Schema.Types.ObjectId, ref: 'User' }],
+    parent: { type: Schema.Types.ObjectId, ref: 'User' }, // Fixed bracket
     enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
     completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
     assessmentHistory: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],

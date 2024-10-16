@@ -1,27 +1,27 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom'; // Import Link for navigation
 import Login from './login';  // Import the Login component
 import Register from './register'; // Import the Register component
+import Dashboard from './dashboard'; // Import the Dashboard component
 
 const App = () => {
-  // Manage the state to toggle between login and register
-  const [showLogin, setShowLogin] = useState(true);
-
-  // Function to toggle between Login and Register components
-  const toggleForm = () => {
-    setShowLogin(!showLogin);
-  };
-
   return (
-    <div className="app-container">
-      <h1>Welcome to HowStuff & Learn</h1>
-      {/* Display either Login or Register based on the current state */}
-      {showLogin ? <Login /> : <Register />}
-
-      {/* Button to switch between forms */}
-      <button onClick={toggleForm}>
-        {showLogin ? 'Go to Register' : 'Go to Login'}
-      </button>
-    </div>
+    <Router> {/* Wrap your app in Router */}
+      <div className="app-container">
+        <h1>Welcome to HowStuff & Learn App</h1>
+        <nav>
+          {/* Navigation Links */}
+          <Link to="/">Login</Link> {/* Link to Login */}
+          <Link to="/register">Register</Link> {/* Link to Register */}
+          <Link to="/dashboard">Dashboard</Link> {/* Link to Dashboard */}
+        </nav>
+        <Routes>
+          <Route path="/" element={<Login />} /> {/* Set the route for Login */}
+          <Route path="/register" element={<Register />} /> {/* Set the route for Register */}
+          <Route path="/dashboard" element={<Dashboard />} /> {/* Set the route for Dashboard */}
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
