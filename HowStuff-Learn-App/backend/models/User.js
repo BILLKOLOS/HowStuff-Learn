@@ -38,6 +38,8 @@ const userSchema = new Schema({
             message: props => `${props.value} is not a valid phone number!`
         }
     },
+    
+    // New Preferences Section (ageGroup, preferredSubjects, learningGoals)
     preferences: {
         notificationSettings: {
             email: { type: Boolean, default: true },
@@ -45,10 +47,16 @@ const userSchema = new Schema({
         },
         contentVisibility: { subjectPreferences: [{ type: String }] },
         languagePreferences: { type: String, default: 'en' },
+        
+        // New fields for user preferences
+        ageGroup: { type: String, enum: ['child', 'teen', 'adult'], required: false }, // Age group preference
+        preferredSubjects: [{ type: String }], // Array of subjects user is interested in
+        learningGoals: { type: String }, // Learning goals description
     },
+    
     // References to other models
     children: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    parent: { type: Schema.Types.ObjectId, ref: 'User' },
+    parent: { type: Schema.Types.ObjectId, ref: 'User' }],
     enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
     completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
     assessmentHistory: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],

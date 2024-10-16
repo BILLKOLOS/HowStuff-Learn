@@ -36,30 +36,30 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-    cookie: { secure: false }, // Set to true for HTTPS
+    cookie: { secure: process.env.NODE_ENV === 'production' }, // Set to true for HTTPS in production
 }));
 
 // Import routes
-const authRoutes = require('./routes/authRoutes'); // Authentication routes
-const userRoutes = require('./routes/userRoutes'); // User management
-const contentRoutes = require('./routes/contentRoutes'); // Educational content management
-const feedbackRoutes = require('./routes/feedbackRoutes'); // Feedback handling
-const learningPathRoutes = require('./routes/learningPathRoutes'); // Learning paths management
-const virtualLectureRoutes = require('./routes/virtualLectureRoutes'); // Virtual lecture management
-const paymentRoutes = require('./routes/paymentRoutes'); // Payment handling
-const projectRoutes = require('./routes/projectRoutes'); // Project management
-const collaborationRoutes = require('./routes/collaborationRoutes'); // Collaboration features
-const communityRoutes = require('./routes/communityRoutes'); // Community interactions
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const contentRoutes = require('./routes/contentRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
+const learningPathRoutes = require('./routes/learningPathRoutes');
+const virtualLectureRoutes = require('./routes/virtualLectureRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const projectRoutes = require('./routes/projectRoutes');
+const collaborationRoutes = require('./routes/collaborationRoutes');
+const communityRoutes = require('./routes/communityRoutes');
 
 // Routes
-//app.use('/auth', authRoutes); // For authentication-related routes
+app.use('/auth', authRoutes); // For authentication-related routes
 app.use('/users', userRoutes); // Handles user registration and profiles
 app.use('/content', contentRoutes); // Fetch and manage educational content
-//app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
-//app.use('/learning-path', learningPathRoutes); // Learning paths for different users
+app.use('/feedback', feedbackRoutes); // Handle feedback from students/teachers
+app.use('/learning-path', learningPathRoutes); // Learning paths for different users
 app.use('/virtual-lectures', virtualLectureRoutes); // Virtual lecture management
 app.use('/payments', paymentRoutes); // For handling payments (MPESA, PayPal)
-//app.use('/projects', projectRoutes); // For managing projects
+app.use('/projects', projectRoutes); // For managing projects
 app.use('/collaboration', collaborationRoutes); // For collaboration features
 app.use('/community', communityRoutes); // For community interactions
 
