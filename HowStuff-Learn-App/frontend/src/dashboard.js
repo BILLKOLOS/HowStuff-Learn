@@ -21,7 +21,7 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem('token'); // Get JWT token
-        const response = await axios.get('/dashboard', {
+        const response = await axios.get('http://localhost:5000/dashboard', { // Full URL to backend
           headers: { Authorization: `Bearer ${token}` },
         });
         setDashboardData(response.data);

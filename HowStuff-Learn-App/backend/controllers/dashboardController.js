@@ -1,11 +1,11 @@
-const Lecture = require('../models/Lecture'); // Updated model name
-const Quiz = require('../models/Quiz'); // Updated model name
-const User = require('../models/User'); // Updated model name
-const Resource = require('../models/Resource'); // Updated model name
-const Gamification = require('../models/Gamification'); // Updated model name
-const Activity = require('../models/Activity'); // For user activity feed
-const Notification = require('../models/Notification'); // For notifications (if implemented)
-const LearningPathController = require('./learningPathController'); // Ensure the path is correct
+const Lecture = require('../models/Lecture');
+const Quiz = require('../models/Quiz');
+const User = require('../models/User');
+const Resource = require('../models/Resource');
+const Gamification = require('../models/Gamification');
+const Activity = require('../models/Activity');
+const Notification = require('../models/Notification');
+const LearningPathController = require('./learningPathController');
 
 // Fetch user activity for the activity feed
 const getUserActivityFeed = async (userId) => {
@@ -17,45 +17,47 @@ const getUserNotifications = async (userId) => {
     return await Notification.find({ userId }).sort({ createdAt: -1 }).limit(5); // Fetch last 5 notifications
 };
 
-// Controller to get the dashboard data
 const getDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
-        // Fetch upcoming and live lectures (include AR/VR flagged lessons)
+
+        console.log('Fetching upcomingLectures');
         const upcomingLectures = await Lecture.find({
             attendees: userId,
-            startTime: { $gte: new Date() }, // Find lectures starting in the future
-            $or: [{ isAR: true }, { isVR: true }] // Only include AR/VR-enabled lessons
-        }).sort({ startTime: 1 }).limit(5); // Get the next 5 upcoming lectures
+            startTime: { $gte: new Date() },
+            $or: [{ isAR: true }, { isVR: true }]
+        }).sort({ startTime: 1 }).limit(5);
 
-        // Fetch recent quizzes (include AR/VR-related quizzes)
+        console.log('Fetching recentQuizzes');
         const recentQuizzes = await Quiz.find({
             participants: userId,
-            isARVRQuiz: true // Filter AR/VR-enabled quizzes
-        }).sort({ createdAt: -1 }).limit(5); // Get the last 5 quizzes or assignments
+            isARVRQuiz: true
+        }).sort({ createdAt: -1 }).limit(5);
 
-        // Fetch user progress for courses
+        console.log('Fetching user progress');
         const user = await User.findById(userId).populate('progress.assessmentId');
 
-        // Fetch suggested resources (include AR/VR content)
+        console.log('Fetching suggestedResources');
+        if (!Array.isArray(user.preferences?.learningPreferences)) {
+            user.preferences.learningPreferences = []; // Ensure it's an array
+        }
         const suggestedResources = await Resource.find({
-            subjects: { $in: user.learningPreferences },
-            $or: [{ isAR: true }, { isVR: true }] // Include only AR/VR resources
-        }).limit(5); // Fetch 5 suggested resources
+            subjects: { $in: user.preferences.learningPreferences },
+            $or: [{ isAR: true }, { isVR: true }]
+        }).limit(5);
 
-        // Fetch gamification status (badges earned)
+        console.log('Fetching gamificationStatus');
         const gamificationStatus = await Gamification.findOne({ userId });
 
-        // Fetch user activity feed
+        console.log('Fetching activityFeed');
         const activityFeed = await getUserActivityFeed(userId);
 
-        // Fetch user notifications
+        console.log('Fetching notifications');
         const notifications = await getUserNotifications(userId);
 
-        // Fetch user learning paths (if needed)
+        console.log('Fetching learningPaths');
         const learningPaths = await LearningPathController.getUserLearningPaths(userId);
 
-        // Send the collected data to the client
         res.status(200).json({
             upcomingLectures,
             recentQuizzes,
@@ -64,15 +66,14 @@ const getDashboard = async (req, res) => {
             gamificationStatus,
             activityFeed,
             notifications,
-            learningPaths, // Include learning paths in the response
-            arvrModules: { upcomingLectures, recentQuizzes, suggestedResources } // Send AR/VR data
+            learningPaths,
+            arvrModules: { upcomingLectures, recentQuizzes, suggestedResources }
         });
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching dashboard data:", err);
         res.status(500).json({ message: 'Failed to load dashboard data', error: err.message });
     }
 };
 
-module.exports = {
-    getDashboard
-};
+module.exports = { getDashboard };
+

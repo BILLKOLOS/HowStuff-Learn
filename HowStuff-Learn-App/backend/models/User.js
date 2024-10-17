@@ -46,13 +46,18 @@ const userSchema = new Schema({
         },
         contentVisibility: { subjectPreferences: [{ type: String }] },
         languagePreferences: { type: String, default: 'en' },
-        ageGroup: { type: String, enum: ['child', 'teen', 'adult'], required: false }, // Age group preference
-        preferredSubjects: [{ type: String }], // Array of subjects user is interested in
-        learningGoals: { type: String }, // Learning goals description
+        ageGroup: { type: String, enum: ['child', 'teen', 'adult'], required: false },
+        preferredSubjects: [{ type: String }],
+        learningGoals: { type: String },
+    },
+    // New Field for Two-Factor Authentication (2FA)
+    twoFactorAuth: {
+        isEnabled: { type: Boolean, default: false },
+        code: { type: String }
     },
     // References to other models
     children: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-    parent: { type: Schema.Types.ObjectId, ref: 'User' }, // Fixed bracket
+    parent: { type: Schema.Types.ObjectId, ref: 'User' },
     enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
     completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
     assessmentHistory: [{ type: Schema.Types.ObjectId, ref: 'Assessment' }],
@@ -63,8 +68,13 @@ const userSchema = new Schema({
     badges: [{ type: Schema.Types.ObjectId, ref: 'Badge' }],
     userLevel: {
         type: String,
-        enum: Object.values(USER_LEVELS), // Ensure USER_LEVELS are properly defined elsewhere
-        required: true, // This ensures userLevel must be provided
+        enum: Object.values(USER_LEVELS),
+        required: true,
+    },
+    // Adding progress field
+    progress: {
+        assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' },
+        percentage: { type: Number, default: 0 },
     },
 });
 
@@ -74,7 +84,7 @@ userSchema.pre('save', async function(next) {
         try {
             this.password = await bcrypt.hash(this.password, 10);
         } catch (error) {
-            return next(error); // Pass error to the next middleware
+            return next(error);
         }
     }
     next();

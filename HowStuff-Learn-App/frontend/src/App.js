@@ -8,7 +8,7 @@ const App = () => {
   return (
     <Router> {/* Wrap your app in Router */}
       <div className="app-container">
-        <h1>Welcome to HowStuff & Learn App</h1>
+        <h1>Welcome aboard,HowStuff & Learn App</h1>
         <nav>
           {/* Navigation Links */}
           <Link to="/">Login</Link> {/* Link to Login */}
