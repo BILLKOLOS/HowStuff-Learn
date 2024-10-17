@@ -1,16 +1,43 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+// Review Schema (separated from content for scalability)
+const reviewSchema = new Schema({
+    userId: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'User' 
+    },
+    contentId: { 
+        type: Schema.Types.ObjectId, 
+        ref: 'Content' 
+    },
+    comment: { 
+        type: String 
+    },
+    rating: { 
+        type: Number, 
+        min: 1, 
+        max: 5 
+    },
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    }
+});
+
 // Content Schema Definition
 const contentSchema = new Schema({
     title: {
         type: String,
         required: true,
         trim: true,
+        minlength: [5, 'Title is too short'],
+        maxlength: [100, 'Title is too long'],
     },
     description: {
         type: String,
         required: true,
+        minlength: [20, 'Description is too short'],
     },
     category: {
         type: String,
@@ -61,19 +88,6 @@ const contentSchema = new Schema({
         type: Number, // Calculated average rating
         default: 0,
     },
-    reviews: [{
-        userId: {
-            type: Schema.Types.ObjectId,
-            ref: 'User', // Reference to the User model
-        },
-        comment: {
-            type: String,
-        },
-        createdAt: {
-            type: Date,
-            default: Date.now,
-        },
-    }],
     isFeatured: {
         type: Boolean,
         default: false, // Indicates if the content is featured
@@ -140,6 +154,28 @@ contentSchema.pre('save', function(next) {
     next();
 });
 
+// Middleware to track changes and update history
+contentSchema.pre('save', function(next) {
+    if (this.isModified()) {
+        const changes = Object.keys(this.modifiedPaths()).join(', ');
+        this.updateHistory.push({ date: new Date(), changes });
+    }
+    next();
+});
+
+// Slug generation before saving, with conflict check
+contentSchema.pre('save', async function(next) {
+    if (this.isModified('title')) {
+        const slug = this.title.toLowerCase().replace(/\s+/g, '-').slice(0, 100);
+        const slugExists = await mongoose.models.Content.findOne({ slug });
+        if (slugExists && slugExists._id.toString() !== this._id.toString()) {
+            return next(new Error('Slug already exists'));
+        }
+        this.slug = slug;
+    }
+    next();
+});
+
 // Virtual method to calculate the average rating
 contentSchema.methods.calculateAverageRating = function() {
     if (this.ratings.length > 0) {
@@ -150,17 +186,12 @@ contentSchema.methods.calculateAverageRating = function() {
     }
 };
 
-// Virtual method to add a review
-contentSchema.methods.addReview = function(review) {
-    this.reviews.push(review);
-};
-
-// Slug generation before saving
-contentSchema.pre('save', function(next) {
-    this.slug = this.title.toLowerCase().replace(/\s+/g, '-').slice(0, 100); // Generate slug from title
-    next();
-});
+// Indexes to optimize queries
+contentSchema.index({ category: 1 });
+contentSchema.index({ createdBy: 1 });
+contentSchema.index({ slug: 1, isFeatured: 1 });
 
 const Content = mongoose.model('Content', contentSchema);
+const Review = mongoose.model('Review', reviewSchema);
 
-module.exports = Content;
+module.exports = { Content, Review };

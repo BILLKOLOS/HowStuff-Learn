@@ -1,12 +1,14 @@
-// learningPathController.js
+// controllers/learningPathController.js
+
 const LearningPath = require('../models/LearningPath');
 const User = require('../models/User');
 const Assessment = require('../models/Assessment'); // To track assessments related to learning paths
+const Progress = require('../models/Progress'); // Assuming you have a Progress model
 const aiUtils = require('../utils/aiUtils'); // Updated to use aiUtils
 const { validateLearningPath } = require('../validators/learningPathValidator'); // Input validation
 
-// Create a new learning path
-exports.createLearningPath = async (req, res) => {
+// Define createLearningPath function
+const createLearningPath = async (req, res) => {
     const { userId, title, description, modules } = req.body;
 
     // Validate input data
@@ -27,30 +29,30 @@ exports.createLearningPath = async (req, res) => {
     }
 };
 
-// Get all learning paths for a user (internal function)
-exports.getUserLearningPaths = async (userId) => {
+// Define getUserLearningPaths function (internal)
+const getUserLearningPaths = async (userId) => {
     try {
         const learningPaths = await LearningPath.find({ userId });
-        return learningPaths; // Return the learning paths instead of sending a response
+        return learningPaths;
     } catch (err) {
         throw new Error('Error fetching learning paths');
     }
 };
 
-// Get all learning paths for a user (API endpoint)
-exports.getUserLearningPathsEndpoint = async (req, res) => {
+// Define getUserLearningPathsEndpoint function (API endpoint)
+const getUserLearningPathsEndpoint = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const learningPaths = await exports.getUserLearningPaths(userId);
+        const learningPaths = await getUserLearningPaths(userId);
         res.status(200).json(learningPaths);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching learning paths', error: err.message });
     }
 };
 
-// Update a learning path
-exports.updateLearningPath = async (req, res) => {
+// Define updateLearningPath function
+const updateLearningPath = async (req, res) => {
     const { pathId } = req.params;
     const updates = req.body;
 
@@ -69,8 +71,8 @@ exports.updateLearningPath = async (req, res) => {
     }
 };
 
-// Delete a learning path
-exports.deleteLearningPath = async (req, res) => {
+// Define deleteLearningPath function
+const deleteLearningPath = async (req, res) => {
     const { pathId } = req.params;
 
     try {
@@ -84,8 +86,8 @@ exports.deleteLearningPath = async (req, res) => {
     }
 };
 
-// Get a specific learning path
-exports.getLearningPathById = async (req, res) => {
+// Define getLearningPathById function
+const getLearningPathById = async (req, res) => {
     const { pathId } = req.params;
 
     try {
@@ -99,20 +101,20 @@ exports.getLearningPathById = async (req, res) => {
     }
 };
 
-// Generate AI-based learning path recommendations
-exports.getAIRecommendations = async (req, res) => {
+// Define getAIRecommendations function
+const getAIRecommendations = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const recommendations = await aiUtils.getRecommendations(userId); // Updated to use aiUtils
+        const recommendations = await aiUtils.getRecommendations(userId);
         res.status(200).json(recommendations);
     } catch (err) {
         res.status(500).json({ message: 'Error generating recommendations', error: err.message });
     }
 };
 
-// Track user progress in a learning path
-exports.trackUserProgress = async (req, res) => {
+// Define trackUserProgress function
+const trackUserProgress = async (req, res) => {
     const { pathId, assessmentId } = req.body;
     const userId = req.user.id;
 
@@ -143,8 +145,8 @@ exports.trackUserProgress = async (req, res) => {
     }
 };
 
-// Retrieve progress in a specific learning path
-exports.getLearningPathProgress = async (req, res) => {
+// Define getLearningPathProgress function
+const getLearningPathProgress = async (req, res) => {
     const { pathId } = req.params;
     const userId = req.user.id;
 
@@ -162,8 +164,8 @@ exports.getLearningPathProgress = async (req, res) => {
     }
 };
 
-// Get details of a specific module in a learning path
-exports.getModuleDetails = async (req, res) => {
+// Define getModuleDetails function
+const getModuleDetails = async (req, res) => {
     const { moduleId } = req.params;
 
     try {
@@ -177,8 +179,8 @@ exports.getModuleDetails = async (req, res) => {
     }
 };
 
-// Provide feedback on a learning path
-exports.provideFeedback = async (req, res) => {
+// Define provideFeedback function
+const provideFeedback = async (req, res) => {
     const { pathId, feedback } = req.body;
     const userId = req.user.id;
 
@@ -189,7 +191,7 @@ exports.provideFeedback = async (req, res) => {
         }
 
         // Assuming feedback is stored in an array in the LearningPath model
-        learningPath.feedback.push({ userId, feedback, createdAt: new Date() });
+        learningPath.feedback.push({ user: userId, feedback, createdAt: new Date() });
         await learningPath.save();
 
         res.status(200).json({ message: 'Feedback submitted successfully', feedback });
@@ -198,26 +200,43 @@ exports.provideFeedback = async (req, res) => {
     }
 };
 
-// Recommend learning paths based on user profile and progress
-exports.recommendLearningPaths = async (req, res) => {
+// Define recommendLearningPaths function
+const recommendLearningPaths = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const recommendations = await aiUtils.getUserRecommendations(userId); // Updated to use aiUtils
+        const recommendations = await aiUtils.getUserRecommendations(userId);
         res.status(200).json(recommendations);
     } catch (err) {
         res.status(500).json({ message: 'Error generating recommendations', error: err.message });
     }
 };
 
-// Get history of learning path changes for a user
-exports.getLearningPathHistory = async (req, res) => {
+// Define getLearningPathHistory function
+const getLearningPathHistory = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const history = await LearningPath.find({ userId }).select('-modules'); // Assuming history includes learning paths without module details
+        const history = await LearningPath.find({ createdBy: userId }).select('-modules');
         res.status(200).json(history);
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving learning path history', error: err.message });
     }
+};
+
+// Export all functions
+module.exports = {
+    createLearningPath,
+    getUserLearningPaths,
+    getUserLearningPathsEndpoint,
+    updateLearningPath,
+    deleteLearningPath,
+    getLearningPathById,
+    getAIRecommendations,
+    trackUserProgress,
+    getLearningPathProgress,
+    getModuleDetails,
+    provideFeedback,
+    recommendLearningPaths,
+    getLearningPathHistory
 };
