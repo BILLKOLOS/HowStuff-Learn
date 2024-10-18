@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2'); // Replace bcrypt with argon2
 const { USER_LEVELS } = require('../utils/aiUtils'); // Ensure USER_LEVELS is defined properly
 
 const userSchema = new Schema({
@@ -38,25 +38,22 @@ const userSchema = new Schema({
             message: props => `${props.value} is not a valid phone number!`
         }
     },
-    // New Preferences Section (ageGroup, preferredSubjects, learningGoals)
     preferences: {
         notificationSettings: {
             email: { type: Boolean, default: true },
-            sms: { type: Boolean, default: false },
+            sms: { type: Boolean, default: false }
         },
         contentVisibility: { subjectPreferences: [{ type: String }] },
         languagePreferences: { type: String, default: 'en' },
         ageGroup: { type: String, enum: ['child', 'teen', 'adult'], required: false },
         preferredSubjects: [{ type: String }],
-        learningGoals: { type: String },
+        learningGoals: { type: String }
     },
-    // New Field for Two-Factor Authentication (2FA)
     twoFactorAuth: {
         isEnabled: { type: Boolean, default: false },
         code: { type: String }
     },
-    // References to other models
-    children: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    children: [{ type: Schema.Types.ObjectId, ref: 'Child' }], // Update to reference Child schema
     parent: { type: Schema.Types.ObjectId, ref: 'User' },
     enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
     completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
@@ -69,20 +66,21 @@ const userSchema = new Schema({
     userLevel: {
         type: String,
         enum: Object.values(USER_LEVELS),
-        required: true,
+        required: function() {
+            return this.role === 'student'; // Only required for students
+        }
     },
-    // Adding progress field
     progress: {
         assessmentId: { type: Schema.Types.ObjectId, ref: 'Assessment' },
-        percentage: { type: Number, default: 0 },
+        percentage: { type: Number, default: 0 }
     },
 });
 
-// Pre-save hook to hash passwords
+// Pre-save hook to hash passwords using argon2
 userSchema.pre('save', async function(next) {
     if (this.isModified('password')) {
         try {
-            this.password = await bcrypt.hash(this.password, 10);
+            this.password = await argon2.hash(this.password);
         } catch (error) {
             return next(error);
         }

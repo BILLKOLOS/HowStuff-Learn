@@ -55,8 +55,8 @@ app.use('/feedback', feedbackRoutes);
 app.use('/learning-path', learningPathRoutes);
 app.use('/virtual-lectures', virtualLectureRoutes);
 //app.use('/payments', paymentRoutes);
-app.use('/projects', projectRoutes);
-//app.use('/collaboration', collaborationRoutes);
+//app.use('/projects', projectRoutes);
+app.use('/collaboration', collaborationRoutes);
 //app.use('/community', communityRoutes);
 app.use('/', dashboardRoutes);
 

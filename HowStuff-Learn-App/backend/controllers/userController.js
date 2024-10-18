@@ -1,38 +1,56 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const argon2 = require('argon2'); // Import argon2
-const bcrypt = require('bcrypt');
+const Child = require('../models/Child'); // Import Child model
+const argon2 = require('argon2');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 // Register function
 const register = async (req, res) => {
-    const { username, email, password, userLevel } = req.body;
+    const { username, email, password, role, childName, childGrade } = req.body;
+
+    // Log the request body for debugging
+    console.log("Request body:", req.body);
+    console.log("Role:", role); // Log the role
 
     try {
-        if (!userLevel) {
-            return res.status(400).json({ message: "userLevel is required." });
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: 'Username, email, and password are required.' });
+        }
+        if (role === 'student' && !childGrade) {
+            return res.status(400).json({ message: 'Grade is required for students.' });
+        }
+        if (role === 'parent' && (!childName || !childGrade)) {
+            return res.status(400).json({ message: 'Child name and grade are required for parents.' });
         }
 
         // Log the password before hashing for debugging
         console.log("Registering user with password:", password);
 
         // Hash the password using argon2
-        const hashedPassword = await argon2.hash(password); // Argon2 automatically handles salt
-        console.log("Hashed password:", hashedPassword); // Log the hashed password
+        const hashedPassword = await argon2.hash(password);
+        console.log("Hashed password:", hashedPassword);
 
         // Create a new user instance with the hashed password
         const newUser = new User({
             username,
             email,
-            password, // Store the hashed password
-            userLevel
+            password,
+            userLevel: role === 'student' ? childGrade : undefined, // Set userLevel only for students
+            role
         });
 
-        // Save the new user to the database
+        // Create and reference Child document for parents
+        if (role === 'parent') {
+            const child = new Child({ name: childName, grade: childGrade });
+            await child.save();
+            newUser.children = [child._id];
+        }
+
+        // Save the user to the database
         await newUser.save();
-        res.status(201).json({ message: 'User registered successfully', user: newUser });
+        res.status(201).json({ message: 'User registered successfully!' });
     } catch (error) {
-        console.error("Error during registration:", error);
+        console.error('Error during registration:', error);
         res.status(500).json({ message: 'Error registering user', error: error.message });
     }
 };
@@ -40,13 +58,12 @@ const register = async (req, res) => {
 // Login function
 const login = async (req, res) => {
     const { email, password } = req.body;
-    console.log("Login attempt for:", { email, password });
+    console.log("Login attempt for:", { email });
 
     try {
         // Find the user by email
         const user = await User.findOne({ email });
         console.log("User found:", user);
-
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -54,34 +71,26 @@ const login = async (req, res) => {
         // Log the hashed password retrieved from the database
         console.log("User's hashed password from database:", user.password);
 
-        let isMatch = false;
-
-        // Check if the password is hashed using bcrypt or argon2
-        if (user.password.startsWith('$2b$')) {
-            // Bcrypt password
-            console.log("Password hashed with bcrypt.");
-            isMatch = await bcrypt.compare(password, user.password);
-        } else if (user.password.startsWith('$argon2')) {
-            // Argon2 password
-            console.log("Password hashed with argon2.");
-            isMatch = await argon2.verify(user.password, password);
-        }
-
+        // Check if the password is hashed using argon2
+        const isMatch = await argon2.verify(user.password, password);
         console.log("Password match:", isMatch);
-
+        
         if (!isMatch) {
             console.error("Passwords do not match for user:", email);
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         // Create and sign a JWT token
-        const token = jwt.sign({ userId: user._id, role: user.userLevel }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
         res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
+
+// Export the functions
+module.exports = { register, login };
 
 // Get user profile function
 const getProfile = async (req, res) => {
@@ -99,20 +108,14 @@ const getProfile = async (req, res) => {
     }
 };
 
-// Export the functions
-module.exports = {
-    register,
-    login,
-    getProfile,
-};
-
 // Create a child account
 const createChildAccount = async (req, res) => {
     const { username, email, password } = req.body;
     const userId = req.user.id;
+
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newChild = new User({ username, email, password: hashedPassword, role: 'child' });
+        const hashedPassword = await argon2.hash(password);
+        const newChild = new User({ username, email, password: hashedPassword, userType: 'child' });
         await newChild.save();
 
         const user = await User.findById(userId);
@@ -129,6 +132,7 @@ const createChildAccount = async (req, res) => {
 const linkChildAccount = async (req, res) => {
     const { childAccount } = req.body;
     const userId = req.user.id;
+
     try {
         const user = await User.findById(userId);
         user.children.push(childAccount);
@@ -143,6 +147,7 @@ const linkChildAccount = async (req, res) => {
 const unlinkChildAccount = async (req, res) => {
     const { childAccountId } = req.body;
     const userId = req.user.id;
+
     try {
         const user = await User.findById(userId);
         user.children = user.children.filter(childId => childId.toString() !== childAccountId);
@@ -156,6 +161,7 @@ const unlinkChildAccount = async (req, res) => {
 // View child's accounts
 const viewChildAccounts = async (req, res) => {
     const userId = req.user.id;
+
     try {
         const user = await User.findById(userId).populate('children');
         res.status(200).json({ message: 'Child accounts retrieved successfully', children: user.children });
@@ -168,17 +174,18 @@ const viewChildAccounts = async (req, res) => {
 const updateProfile = async (req, res) => {
     const { username, email, newPassword } = req.body;
     const userId = req.user.id;
+
     try {
         const user = await User.findById(userId);
         if (newPassword) {
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const hashedPassword = await argon2.hash(newPassword);
             user.password = hashedPassword;
         }
         user.username = username || user.username;
         user.email = email || user.email;
 
         // Adjust content based on user's educational stage
-        adjustContentForUserLevel(user);
+        // adjustContentForUserLevel(user); // Uncomment if this function exists
 
         await user.save();
         res.status(200).json({ message: 'Profile updated successfully', user });
@@ -190,6 +197,7 @@ const updateProfile = async (req, res) => {
 // Delete user account
 const deleteAccount = async (req, res) => {
     const userId = req.user.id;
+
     try {
         await User.findByIdAndDelete(userId);
         res.status(200).json({ message: 'Account deleted successfully' });
@@ -202,6 +210,7 @@ const deleteAccount = async (req, res) => {
 const createAssessment = async (req, res) => {
     const { title, questions } = req.body;
     const userId = req.user.id;
+
     try {
         const newAssessment = new Assessment({ title, questions, createdBy: userId });
         await newAssessment.save();
@@ -215,6 +224,7 @@ const createAssessment = async (req, res) => {
 const takeAssessment = async (req, res) => {
     const { assessmentId, answers } = req.body;
     const userId = req.user.id;
+
     try {
         const assessment = await Assessment.findById(assessmentId);
         if (!assessment) return res.status(404).json({ message: 'Assessment not found' });
@@ -233,16 +243,28 @@ const evaluateAssessment = (questions, answers) => {
     const feedback = { correct: 0, incorrect: 0, details: [] };
     questions.forEach((question, index) => {
         const isCorrect = question.correctAnswer === answers[index];
-        feedback.details.push({ question: question.questionText, givenAnswer: answers[index], isCorrect });
-        if (isCorrect) feedback.correct++;
-        else feedback.incorrect++;
+        feedback.details.push({ 
+            question: question.questionText, 
+            givenAnswer: answers[index], 
+            isCorrect 
+        });
+        if (isCorrect) {
+            feedback.correct++;
+        } else {
+            feedback.incorrect++;
+        }
     });
     return feedback;
 };
 
 // Save progress and feedback
 const saveProgress = async (userId, assessmentId, feedback) => {
-    const progressEntry = new Progress({ userId, assessmentId, feedback, date: new Date() });
+    const progressEntry = new Progress({ 
+        userId, 
+        assessmentId, 
+        feedback, 
+        date: new Date() 
+    });
     await progressEntry.save();
 };
 

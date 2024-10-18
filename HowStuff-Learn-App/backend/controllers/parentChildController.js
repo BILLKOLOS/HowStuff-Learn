@@ -1,10 +1,12 @@
 const ParentChild = require('../models/ParentChild');
 const User = require('../models/User');
+const Progress = require('../models/Progress');
+const CBCEnrollment = require('../models/CBCEnrollment');
 
 // Link child account to parent
-exports.linkChildToParent = async (req, res) => {
+const linkChildToParent = async (req, res) => {
     try {
-        const { parentId, childId } = req.body;
+        const { parentId, childId, childName, gradeLevel, curriculum } = req.body;
 
         // Ensure parent and child exist
         const parent = await User.findById(parentId);
@@ -14,22 +16,42 @@ exports.linkChildToParent = async (req, res) => {
             return res.status(404).json({ message: "Parent or child not found." });
         }
 
+        // Check if user roles are correct (Parent and Child)
+        if (parent.role !== 'parent') {
+            return res.status(403).json({ message: "User is not authorized to link child accounts." });
+        }
+
+        if (child.role !== 'student') {
+            return res.status(403).json({ message: "Cannot link non-student accounts as a child." });
+        }
+
         // Create the parent-child link
         const parentChildLink = new ParentChild({
             parentId: parent._id,
-            childId: child._id
+            childId: child._id,
+            childName: childName,
+            gradeLevel: gradeLevel,
+            curriculum: curriculum || 'CBC',
         });
 
         await parentChildLink.save();
 
-        res.status(201).json({ message: "Child successfully linked to parent.", parentChildLink });
+        // Enroll child in CBC curriculum
+        const enrollment = new CBCEnrollment({
+            studentId: childId,
+            gradeLevel: gradeLevel,
+            curriculum: 'CBC',
+        });
+        await enrollment.save();
+
+        res.status(201).json({ message: "Child successfully linked to parent and enrolled in CBC curriculum.", parentChildLink });
     } catch (error) {
         res.status(500).json({ message: "Error linking child to parent.", error });
     }
 };
 
 // View child's progress by parent
-exports.viewChildProgress = async (req, res) => {
+const viewChildProgress = async (req, res) => {
     try {
         const { parentId, childId } = req.params;
 
@@ -40,7 +62,7 @@ exports.viewChildProgress = async (req, res) => {
             return res.status(404).json({ message: "No parent-child relationship found." });
         }
 
-        // Get child progress data (assuming there's a Progress model)
+        // Get child progress data
         const childProgress = await Progress.find({ userId: childId });
 
         res.status(200).json({ message: "Child's progress retrieved successfully.", childProgress });
@@ -50,7 +72,7 @@ exports.viewChildProgress = async (req, res) => {
 };
 
 // Unlink child from parent
-exports.unlinkChildFromParent = async (req, res) => {
+const unlinkChildFromParent = async (req, res) => {
     try {
         const { parentId, childId } = req.body;
 
@@ -68,7 +90,7 @@ exports.unlinkChildFromParent = async (req, res) => {
 };
 
 // Get all linked children of a parent
-exports.getLinkedChildren = async (req, res) => {
+const getLinkedChildren = async (req, res) => {
     try {
         const { parentId } = req.params;
 
@@ -83,4 +105,11 @@ exports.getLinkedChildren = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error retrieving linked children.", error });
     }
+};
+
+module.exports = {
+    linkChildToParent,
+    viewChildProgress,
+    unlinkChildFromParent,
+    getLinkedChildren
 };
