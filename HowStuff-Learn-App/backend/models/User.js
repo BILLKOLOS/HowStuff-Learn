@@ -25,7 +25,7 @@ const userSchema = new Schema({
             message: 'Password must be at least 6 characters long and contain at least one digit and one special character.'
         }
     },
-    role: { type: String, enum: ['student', 'parent', 'educator', 'admin'], default: 'student' },
+    role: { type: String, enum: ['student', 'parent', 'educator', 'admin', 'user'], default: 'student' },
     profilePicture: { type: String, default: 'defaultProfilePic.png' },
     createdAt: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true },
