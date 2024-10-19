@@ -7,12 +7,13 @@ const jwt = require('jsonwebtoken');
 // Register function
 const register = async (req, res) => {
     const { username, email, password, role, childName, childGrade } = req.body;
-
+    const normalizedEmail = email.toLowerCase();
     // Log the request body for debugging
     console.log("Request body:", req.body);
     console.log("Role:", role); // Log the role
 
     try {
+        // Validate required fields
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'Username, email, and password are required.' });
         }
@@ -33,17 +34,22 @@ const register = async (req, res) => {
         // Create a new user instance with the hashed password
         const newUser = new User({
             username,
-            email,
-            password,
+            email: normalizedEmail,
+            password, // Save the hashed password
             userLevel: role === 'student' ? childGrade : undefined, // Set userLevel only for students
             role
         });
 
         // Create and reference Child document for parents
         if (role === 'parent') {
-            const child = new Child({ name: childName, grade: childGrade });
-            await child.save();
-            newUser.children = [child._id];
+            const child = new Child({ 
+                name: childName, 
+                grade: childGrade,
+                curriculum: 'CBC', // Set default curriculum or get it from the request
+                parent: newUser._id // Link the child to the parent user
+            });
+            await child.save(); // Save the child document
+            newUser.children = [child._id]; // Reference the child in the user's children array
         }
 
         // Save the user to the database
@@ -55,23 +61,20 @@ const register = async (req, res) => {
     }
 };
 
-// Login function
+module.exports = { register };
+
+
 const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("Login attempt for:", { email });
 
     try {
-        // Find the user by email
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase() }); // Ensure email is lowercase
         console.log("User found:", user);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Log the hashed password retrieved from the database
-        console.log("User's hashed password from database:", user.password);
-
-        // Check if the password is hashed using argon2
         const isMatch = await argon2.verify(user.password, password);
         console.log("Password match:", isMatch);
         
@@ -80,17 +83,30 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        // Create and sign a JWT token
         const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Login successful', token });
+
+        // Normalize the role
+        const normalizedRole = user.role.toLowerCase();
+        
+        // Determine the redirect URL based on the role
+        let redirectUrl;
+        if (normalizedRole === 'parent') {
+            redirectUrl = '/parent-dashboard';
+        } else if (normalizedRole === 'student') {
+            redirectUrl = '/dashboard';
+        } else {
+            return res.status(403).json({ message: 'Invalid role detected' });
+        }
+
+        console.log("User role:", normalizedRole); // Log the role
+        console.log("Redirect URL:", redirectUrl); // Log the redirect URL
+
+        res.status(200).json({ message: 'Login successful', token, redirectUrl });
     } catch (error) {
         console.error("Error during login:", error);
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
-
-// Export the functions
-module.exports = { register, login };
 
 // Get user profile function
 const getProfile = async (req, res) => {

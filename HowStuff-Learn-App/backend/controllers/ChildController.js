@@ -1,63 +1,88 @@
 const Child = require('../models/Child');
 
-exports.createChild = async (req, res) => {
-    const { name, grade } = req.body;
+// Create a child
+const createChild = async (req, res) => {
+  const { name, grade, curriculum } = req.body;
+  const parentId = req.user._id; // Destructured parent ID
 
-    try {
-        const newChild = new Child({
-            name,
-            grade,
-            parent: req.user._id, // Assuming user is authenticated and parent ID is available
-        });
+  // Validation checks
+  if (!name || !grade || !curriculum) {
+    return res.status(400).json({ error: 'All fields are required.' });
+  }
 
-        await newChild.save();
-        res.status(201).json({ message: 'Child created successfully!', child: newChild });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+  try {
+    const newChild = new Child({
+      name,
+      grade,
+      curriculum,
+      parent: parentId
+    });
+
+    await newChild.save();
+    res.status(201).json({ message: 'Child created successfully!', child: newChild });
+  } catch (error) {
+    res.status(500).json({ error: 'Error creating child: ' + error.message });
+  }
 };
 
-exports.getChildren = async (req, res) => {
-    try {
-        const children = await Child.find({ parent: req.user._id }); // Fetch children linked to the authenticated parent
-        res.status(200).json(children);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+// Get children for a parent
+const getChildren = async (req, res) => {
+  const parentId = req.user._id; // Destructured parent ID
+
+  try {
+    const children = await Child.find({ parent: parentId });
+    res.status(200).json(children);
+  } catch (error) {
+    res.status(500).json({ error: 'Error fetching children: ' + error.message });
+  }
 };
 
-exports.updateChild = async (req, res) => {
-    const { childId, name, grade } = req.body;
+// Update a child
+const updateChild = async (req, res) => {
+  const { childId, name, grade, curriculum } = req.body;
+  const parentId = req.user._id; // Destructured parent ID
 
-    try {
-        const updatedChild = await Child.findOneAndUpdate(
-            { _id: childId, parent: req.user._id }, // Ensure the parent owns the child record
-            { name, grade },
-            { new: true, runValidators: true } // Return the updated document
-        );
+  try {
+    const updatedChild = await Child.findOneAndUpdate(
+      { _id: childId, parent: parentId },
+      { name, grade, curriculum },
+      { new: true, runValidators: true }
+    );
 
-        if (!updatedChild) {
-            return res.status(404).json({ error: 'Child not found or not authorized.' });
-        }
-
-        res.status(200).json({ message: 'Child updated successfully!', child: updatedChild });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!updatedChild) {
+      return res.status(404).json({ error: 'Child not found or not authorized.' });
     }
+
+    res.status(200).json({ message: 'Child updated successfully!', child: updatedChild });
+  } catch (error) {
+    res.status(500).json({ error: 'Error updating child: ' + error.message });
+  }
 };
 
-exports.deleteChild = async (req, res) => {
-    const { childId } = req.params;
+// Delete a child
+const deleteChild = async (req, res) => {
+  const { childId } = req.params;
+  const parentId = req.user._id; // Destructured parent ID
 
-    try {
-        const deletedChild = await Child.findOneAndDelete({ _id: childId, parent: req.user._id }); // Ensure the parent owns the child record
+  try {
+    const deletedChild = await Child.findOneAndDelete({
+      _id: childId,
+      parent: parentId
+    });
 
-        if (!deletedChild) {
-            return res.status(404).json({ error: 'Child not found or not authorized.' });
-        }
-
-        res.status(200).json({ message: 'Child deleted successfully!' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+    if (!deletedChild) {
+      return res.status(404).json({ error: 'Child not found or not authorized.' });
     }
+
+    res.status(200).json({ message: 'Child deleted successfully!' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error deleting child: ' + error.message });
+  }
+};
+
+module.exports = {
+  createChild,
+  getChildren,
+  updateChild,
+  deleteChild
 };

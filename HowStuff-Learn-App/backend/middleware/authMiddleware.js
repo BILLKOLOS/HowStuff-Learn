@@ -10,10 +10,12 @@ exports.verifyToken = async (req, res, next) => {
         }
         jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
             if (err) {
-                console.log('Token verification error:', err);
-                return res.status(401).json({ message: 'Failed to authenticate token.' });
+                console.error('Token verification error:', err);
+                const message = err.name === 'TokenExpiredError' 
+                    ? 'Token has expired. Please log in again.' 
+                    : 'Failed to authenticate token.';
+                return res.status(401).json({ message });
             }
-            console.log('Decoded token:', decoded);
             const user = await User.findById(decoded.userId);
             if (!user) {
                 return res.status(404).json({ message: 'User not found.' });
@@ -33,10 +35,9 @@ exports.verifyToken = async (req, res, next) => {
         });
     } catch (error) {
         console.error('JWT Middleware Error:', error);
-        res.status(500).json({ message: 'Failed to verify token.', error });
+        res.status(500).json({ message: 'Failed to verify token.', error: error.message });
     }
 };
-
 
 // Middleware to check if the user has a specific role
 exports.verifyRole = (requiredRole) => (req, res, next) => {

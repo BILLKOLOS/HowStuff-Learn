@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
-const argon2 = require('argon2'); // Replace bcrypt with argon2
+const argon2 = require('argon2'); // Use argon2 for password hashing
 const { USER_LEVELS } = require('../utils/aiUtils'); // Ensure USER_LEVELS is defined properly
 
 const userSchema = new Schema({
@@ -53,7 +53,7 @@ const userSchema = new Schema({
         isEnabled: { type: Boolean, default: false },
         code: { type: String }
     },
-    children: [{ type: Schema.Types.ObjectId, ref: 'Child' }], // Update to reference Child schema
+    children: [{ type: Schema.Types.ObjectId, ref: 'Child' }], // References Child schema
     parent: { type: Schema.Types.ObjectId, ref: 'User' },
     enrolledModules: [{ type: Schema.Types.ObjectId, ref: 'LearningModule' }],
     completedLabs: [{ type: Schema.Types.ObjectId, ref: 'VirtualLab' }],
@@ -67,7 +67,7 @@ const userSchema = new Schema({
         type: String,
         enum: Object.values(USER_LEVELS),
         required: function() {
-            return this.role === 'student'; // Only required for students
+            return this.role === 'student'; // Required only for students
         }
     },
     progress: {

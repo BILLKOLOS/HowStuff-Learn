@@ -13,17 +13,34 @@ const ParentDashboard = () => {
         recentActivities: [], 
         upcomingEvents: [] 
     });
-    const [selectedChild, setSelectedChild] = useState(null); // For displaying selected child's details
+    const [selectedChild, setSelectedChild] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        async function fetchData() {
+        const fetchData = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get('/dashboard/parent');
-                setParentData(response.data);
+                const token = localStorage.getItem('token'); // Retrieve token from local storage
+                const response = await axios.get('http://localhost:5000/dashboard/parent', {
+                    headers: {
+                        Authorization: `Bearer ${token}` // Include the token in the header
+                    }
+                });
+                // Ensure all necessary fields are defined
+                setParentData({
+                    children: response.data.children || [],
+                    notifications: response.data.notifications || [],
+                    recentActivities: response.data.recentActivities || [],
+                    upcomingEvents: response.data.upcomingEvents || []
+                });
             } catch (error) {
+                setError("Error fetching parent dashboard data. Please try again later.");
                 console.error("Error fetching parent dashboard data:", error);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
         fetchData();
     }, []);
 
@@ -32,6 +49,31 @@ const ParentDashboard = () => {
         setSelectedChild(child);
     };
 
+    const renderChildDetails = (child) => (
+        <>
+            <ProgressChart data={child.progress || []} /> {/* Default to an empty array if progress is undefined */}
+            <div className="learning-goals">
+                <h2>Learning Goals</h2>
+                <ul>
+                    {(child.learningGoals || []).map((goal, index) => ( // Default to an empty array
+                        <li key={index}>{goal.description} - Progress: {goal.progress || 0}%</li> // Fallback to 0 if progress is undefined
+                    )) || <li>No learning goals available.</li>} {/* Fallback message */}
+                </ul>
+            </div>
+            <div className="recent-activities">
+                <h2>Recent Activities</h2>
+                <ul>
+                    {(child.recentActivities || []).map((activity, index) => ( // Default to an empty array
+                        <li key={index}>{activity.description}</li>
+                    )) || <li>No recent activities available.</li>} {/* Fallback message */}
+                </ul>
+            </div>
+        </>
+    );
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div className="error">{error}</div>;
+
     return (
         <div className="parent-dashboard">
             <h1>Parent Dashboard</h1>
@@ -39,55 +81,25 @@ const ParentDashboard = () => {
             <div className="overview">
                 <h2>Children's Overview</h2>
                 <ul>
-                    {parentData.children.map(child => (
+                    {(parentData.children || []).map(child => ( // Default to an empty array
                         <li key={child._id} onClick={() => handleChildSelect(child._id)}>
                             {child.name} - Grade: {child.grade}
                         </li>
-                    ))}
+                    )) || <li>No children available.</li>} {/* Fallback message */}
                 </ul>
             </div>
 
             <div className="progress-chart">
                 <h2>Child's Progress</h2>
-                {selectedChild ? (
-                    <ProgressChart data={selectedChild.progress} />
-                ) : (
-                    <p>Please select a child to view their progress.</p>
-                )}
-            </div>
-
-            <div className="learning-goals">
-                <h2>Learning Goals</h2>
-                {selectedChild ? (
-                    <ul>
-                        {selectedChild.learningGoals.map((goal, index) => (
-                            <li key={index}>{goal.description} - Progress: {goal.progress}%</li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>Please select a child to view their learning goals.</p>
-                )}
-            </div>
-
-            <div className="recent-activities">
-                <h2>Recent Activities</h2>
-                {selectedChild ? (
-                    <ul>
-                        {selectedChild.recentActivities.map((activity, index) => (
-                            <li key={index}>{activity.description}</li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p>Please select a child to view recent activities.</p>
-                )}
+                {selectedChild ? renderChildDetails(selectedChild) : <p>Please select a child to view their progress.</p>}
             </div>
 
             <div className="upcoming-events">
                 <h2>Upcoming Events</h2>
                 <ul>
-                    {parentData.upcomingEvents.map((event, index) => (
+                    {(parentData.upcomingEvents || []).map((event, index) => ( // Default to an empty array
                         <li key={index}>{event.date}: {event.description}</li>
-                    ))}
+                    )) || <li>No upcoming events available.</li>} {/* Fallback message */}
                 </ul>
             </div>
 

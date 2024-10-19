@@ -11,13 +11,13 @@ router.post('/register', userController.register);
 router.post('/login', userController.login);
 
 // Link a child's account to the parent account
-router.post('/link-child', authMiddleware.verifyToken, userController.linkChildAccount);
+router.post('/children/link', authMiddleware.verifyToken, userController.linkChildAccount);
 
 // Create a new child account under the parent account
-router.post('/create-child', authMiddleware.verifyToken, userController.createChildAccount);
+router.post('/children/create', authMiddleware.verifyToken, userController.createChildAccount);
 
 // Unlink a child account from the parent account
-router.delete('/unlink-child', authMiddleware.verifyToken, userController.unlinkChildAccount);
+router.delete('/children/unlink', authMiddleware.verifyToken, userController.unlinkChildAccount);
 
 // View all linked child accounts for the parent
 router.get('/children', authMiddleware.verifyToken, userController.viewChildAccounts);
@@ -25,14 +25,14 @@ router.get('/children', authMiddleware.verifyToken, userController.viewChildAcco
 // Update the user's profile
 router.put('/profile', authMiddleware.verifyToken, userController.updateProfile);
 
+// View user's profile
+router.get('/profile', authMiddleware.verifyToken, userController.getProfile);
+
 // Delete the user's account
 router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount);
 
 // Search for educational resources
 router.get('/search', authMiddleware.verifyToken, userController.searchResources);
-
-// View user's profile
-router.get('/profile', authMiddleware.verifyToken, userController.getProfile); // New route to get user profile
 
 // Progress management routes
 router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);

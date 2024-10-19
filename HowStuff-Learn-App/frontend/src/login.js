@@ -20,11 +20,26 @@ const Login = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/users/login', formData);
-      localStorage.setItem('token', res.data.token); // Save token to localStorage
+
+      // Assuming the response contains user data including token and redirectUrl
+      const { token, redirectUrl } = res.data;
+
+      // Save token to localStorage
+      localStorage.setItem('token', token);
+
       alert('Login successful!');
-      navigate('/dashboard'); // Redirect to dashboard after login
+
+      // Redirect to the URL provided by the backend
+      if (redirectUrl) {
+        console.log("Navigating to:", redirectUrl); // Debug log
+        navigate(redirectUrl); // Redirect using the URL from backend
+      } else {
+        alert('No redirect URL found');
+      }
+
     } catch (error) {
-      alert('Error during login: ' + (error.response?.data?.error || 'An unexpected error occurred'));
+      // Handle errors during login
+      alert('Error during login: ' + (error.response?.data?.message || 'An unexpected error occurred'));
       console.error(error.response?.data || error);
     }
   };
