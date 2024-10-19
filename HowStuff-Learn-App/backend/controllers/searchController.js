@@ -22,12 +22,23 @@ const searchController = {
             // Iterate through each service and perform the search
             for (const [serviceName, service] of Object.entries(services)) {
                 try {
-                    // Assuming each service has a 'search' method
+                    // Check if the service has a 'search' method
+                    if (typeof service.search !== 'function') {
+                        throw new Error(`Service ${serviceName} does not have a search method.`);
+                    }
+
+                    // Call the search method and store the results
                     const serviceResults = await service.search(query);
-                    results[serviceName] = serviceResults;
+                    results[serviceName] = {
+                        success: true,
+                        data: serviceResults,
+                    };
                 } catch (error) {
                     console.error(`Error searching with ${serviceName}:`, error);
-                    results[serviceName] = { success: false, message: 'Error retrieving data.' };
+                    results[serviceName] = {
+                        success: false,
+                        message: error.message || 'Error retrieving data.',
+                    };
                 }
             }
 

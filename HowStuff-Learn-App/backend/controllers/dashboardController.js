@@ -50,7 +50,6 @@ const getDashboard = async (req, res) => {
                 isARVRQuiz: true
             }).sort({ createdAt: -1 }).limit(5),
 
-            // Now we can safely use `user.preferences`
             Resource.find({
                 subjects: { $in: user.preferences?.learningPreferences || [] },
                 $or: [{ isAR: true }, { isVR: true }]
@@ -97,30 +96,44 @@ const getParentDashboard = async (req, res) => {
 
         // Fetch details for each child
         const childrenDetails = await Promise.all(parentUser.children.map(async (childId) => {
-            const child = await User.findById(childId).populate('progress.assessmentId'); // Assuming 'progress' has the assessments
-            return {
-                _id: child._id,
-                name: child.name,
-                grade: child.grade,
-                progress: child.progress || [],
-                learningGoals: child.learningGoals || [],
-                recentActivities: await getUserActivityFeed(childId) // Assuming you want the child's activity feed
-            };
+            try {
+                const child = await User.findById(childId).populate('progress.assessmentId'); // Assuming 'progress' has the assessments
+                return {
+                    _id: child._id,
+                    name: child.name,
+                    grade: child.grade,
+                    progress: child.progress || [],  // Safe access
+                    learningGoals: child.learningGoals || [],  // Safe access
+                    recentActivities: await getUserActivityFeed(childId)  // Child's activity feed
+                };
+            } catch (error) {
+                console.error(`Error fetching child data for childId ${childId}:`, error);
+                return null; // Skip child if there's an error
+            }
         }));
 
-        // Fetch upcoming events (if applicable)
-        const upcomingEvents = await Lecture.find({
-            attendees: { $in: parentUser.children }, // Check events for all children
-            scheduledTime: { $gte: new Date() }
-        }).sort({ scheduledTime: 1 }).limit(5);
+        // Filter out any null values from childrenDetails
+        const validChildrenDetails = childrenDetails.filter(child => child !== null);
+
+        // Fetch upcoming events for the parent's children
+        let upcomingEvents = [];
+        try {
+            upcomingEvents = await Lecture.find({
+                attendees: { $in: parentUser.children },  // Events for the children
+                scheduledTime: { $gte: new Date() }       // Only upcoming events
+            }).sort({ scheduledTime: 1 }).limit(5);      // Limit to 5 and sort by time
+        } catch (error) {
+            console.error("Error fetching upcoming events:", error);
+        }
 
         // Sending response with parent dashboard data
         res.status(200).json({
-            children: childrenDetails,
-            notifications,
-            recentActivities,
-            upcomingEvents
+            children: validChildrenDetails,
+            notifications: notifications || [],  // Fallback if undefined
+            recentActivities: recentActivities || [],  // Fallback if undefined
+            upcomingEvents: upcomingEvents || []  // Fallback if undefined
         });
+
     } catch (err) {
         console.error("Error fetching parent dashboard data:", err);
         res.status(500).json({ message: 'Failed to load parent dashboard data', error: err.message });
