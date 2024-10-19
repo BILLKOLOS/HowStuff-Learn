@@ -1,45 +1,36 @@
-const express = require('express');
+const express = require('express'); 
 const router = express.Router();
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
 const progressController = require('../controllers/progressController');
+const parentChildController = require('../controllers/parentChildController');
+const authMiddleware = require('../middleware/authMiddleware');
 
-// User registration
-router.post('/register', userController.register);
+// User Registration and Authentication Routes
+router.post('/register', userController.register);  // User registration
+router.post('/login', userController.login);        // User login
+router.put('/profile', authMiddleware.verifyToken, userController.updateProfile); // Update user profile
+router.get('/profile', authMiddleware.verifyToken, userController.getProfile);      // View user profile
+router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount); // Delete user account
 
-// User login
-router.post('/login', userController.login);
+// Parent-Child Relationship Management Routes
+router.post('/children/link', authMiddleware.verifyToken, parentChildController.linkChildToParent);   // Link child account to parent
+router.post('/children/create', authMiddleware.verifyToken, userController.createChildAccount); // Create new child account
+router.delete('/children/unlink', authMiddleware.verifyToken, parentChildController.unlinkChildFromParent); // Unlink child account from parent
+router.get('/children', authMiddleware.verifyToken, userController.viewChildAccounts);  // View all linked child accounts for the parent
 
-// Link a child's account to the parent account
-router.post('/children/link', authMiddleware.verifyToken, userController.linkChildAccount);
+// Child Progress Management Routes
+router.get('/parent/:parentId/child/:childId/progress', authMiddleware.verifyToken, parentChildController.viewChildProgress); // View child's progress
+router.get('/parent/:parentId/children', authMiddleware.verifyToken, parentChildController.getLinkedChildren); // Get linked children
 
-// Create a new child account under the parent account
-router.post('/children/create', authMiddleware.verifyToken, userController.createChildAccount);
+// Educational Resource Search Route
+router.get('/search', authMiddleware.verifyToken, userController.searchResources); // Search for educational resources
 
-// Unlink a child account from the parent account
-router.delete('/children/unlink', authMiddleware.verifyToken, userController.unlinkChildAccount);
-
-// View all linked child accounts for the parent
-router.get('/children', authMiddleware.verifyToken, userController.viewChildAccounts);
-
-// Update the user's profile
-router.put('/profile', authMiddleware.verifyToken, userController.updateProfile);
-
-// View user's profile
-router.get('/profile', authMiddleware.verifyToken, userController.getProfile);
-
-// Delete the user's account
-router.delete('/account', authMiddleware.verifyToken, userController.deleteAccount);
-
-// Search for educational resources
-router.get('/search', authMiddleware.verifyToken, userController.searchResources);
-
-// Progress management routes
-router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);
-router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport);
-router.post('/progress/goals', authMiddleware.verifyToken, progressController.setLearningGoals);
-router.get('/progress/details/:userId', authMiddleware.verifyToken, progressController.getDetailedProgressReport);
-router.get('/progress/behavior/:userId', authMiddleware.verifyToken, progressController.analyzeUserBehavior);
-router.get('/progress/historical/:userId', authMiddleware.verifyToken, progressController.getHistoricalProgressTrends);
+// Progress Management Routes
+router.post('/progress', authMiddleware.verifyToken, progressController.updateProgress);  // Update progress
+router.get('/progress/:userId', authMiddleware.verifyToken, progressController.getProgressReport); // View progress report
+router.post('/progress/goals', authMiddleware.verifyToken, progressController.setLearningGoals); // Set learning goals
+router.get('/progress/details/:userId', authMiddleware.verifyToken, progressController.getDetailedProgressReport); // Get detailed progress report
+router.get('/progress/behavior/:userId', authMiddleware.verifyToken, progressController.analyzeUserBehavior); // Analyze user behavior
+router.get('/progress/historical/:userId', authMiddleware.verifyToken, progressController.getHistoricalProgressTrends); // Get historical progress trends
 
 module.exports = router;

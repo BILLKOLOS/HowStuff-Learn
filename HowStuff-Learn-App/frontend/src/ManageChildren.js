@@ -1,3 +1,4 @@
+// src/ManageChildren.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
@@ -9,10 +10,16 @@ const ManageChildren = () => {
 
     const fetchChildren = async () => {
         try {
-            const response = await axios.get('/api/children'); // Assuming you have a route for fetching children
-            setChildren(response.data);
+            const token = localStorage.getItem('token'); // Retrieve token from local storage
+            const response = await axios.get('http://localhost:5000/users/children', { // Updated endpoint
+                headers: {
+                    Authorization: `Bearer ${token}` // Include the token in the header
+                }
+            });
+            setChildren(response.data.children || []); // Ensure children is defined
         } catch (error) {
             setMessage('Failed to fetch children.');
+            console.error("Error fetching children:", error);
         }
     };
 
@@ -23,13 +30,19 @@ const ManageChildren = () => {
     const handleAddChild = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('/api/children', { name, grade });
+            const token = localStorage.getItem('token'); // Retrieve token from local storage
+            const response = await axios.post('http://localhost:5000/users/children/create', { name, grade }, { // Updated endpoint
+                headers: {
+                    Authorization: `Bearer ${token}` // Include the token in the header
+                }
+            });
             setMessage(response.data.message);
             fetchChildren(); // Refresh the list after adding
             setName('');
             setGrade('');
         } catch (error) {
-            setMessage(error.response.data.error);
+            setMessage(error.response?.data?.error || 'Error adding child.'); // Fallback error message
+            console.error("Error adding child:", error);
         }
     };
 
@@ -57,7 +70,7 @@ const ManageChildren = () => {
             <ul>
                 {children.map((child) => (
                     <li key={child._id}>
-                        {child.name} - {child.grade}
+                        {child.name} - Grade: {child.grade} {/* Updated to show grade label */}
                         {/* Add buttons for editing and deleting if needed */}
                     </li>
                 ))}

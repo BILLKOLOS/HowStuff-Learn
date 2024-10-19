@@ -10,8 +10,7 @@ const ParentDashboard = () => {
     const [parentData, setParentData] = useState({ 
         children: [], 
         notifications: [], 
-        recentActivities: [], 
-        upcomingEvents: [] 
+        upcomingEvents: [] // Removed recent activities as it is not provided in the API
     });
     const [selectedChild, setSelectedChild] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,7 +21,7 @@ const ParentDashboard = () => {
             setLoading(true);
             try {
                 const token = localStorage.getItem('token'); // Retrieve token from local storage
-                const response = await axios.get('http://localhost:5000/dashboard/parent', {
+                const response = await axios.get('http://localhost:5000/users/children', { // Updated endpoint
                     headers: {
                         Authorization: `Bearer ${token}` // Include the token in the header
                     }
@@ -31,8 +30,7 @@ const ParentDashboard = () => {
                 setParentData({
                     children: response.data.children || [],
                     notifications: response.data.notifications || [],
-                    recentActivities: response.data.recentActivities || [],
-                    upcomingEvents: response.data.upcomingEvents || []
+                    upcomingEvents: response.data.upcomingEvents || [] // Updated to match the API response
                 });
             } catch (error) {
                 setError("Error fetching parent dashboard data. Please try again later.");
@@ -83,7 +81,7 @@ const ParentDashboard = () => {
                 <ul>
                     {(parentData.children || []).map(child => ( // Default to an empty array
                         <li key={child._id} onClick={() => handleChildSelect(child._id)}>
-                            {child.name} - Grade: {child.grade}
+                            {child.name} - Grade: {child.gradeLevel} {/* Updated to match the API field */}
                         </li>
                     )) || <li>No children available.</li>} {/* Fallback message */}
                 </ul>

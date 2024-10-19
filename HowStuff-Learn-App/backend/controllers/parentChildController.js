@@ -1,4 +1,4 @@
-const ParentChild = require('../models/ParentChild');
+const ParentChildAccount = require('../models/ParentChildAccount');
 const User = require('../models/User');
 const Progress = require('../models/Progress');
 const CBCEnrollment = require('../models/CBCEnrollment');
@@ -26,12 +26,11 @@ const linkChildToParent = async (req, res) => {
         }
 
         // Create the parent-child link
-        const parentChildLink = new ParentChild({
+        const parentChildLink = new ParentChildAccount({
             parentId: parent._id,
             childId: child._id,
-            childName: childName,
-            gradeLevel: gradeLevel,
-            curriculum: curriculum || 'CBC',
+            accountType: 'Parent', // You can set this based on your requirement
+            relationshipType: 'Biological', // Adjust as necessary
         });
 
         await parentChildLink.save();
@@ -56,7 +55,7 @@ const viewChildProgress = async (req, res) => {
         const { parentId, childId } = req.params;
 
         // Ensure parent-child relationship exists
-        const relationship = await ParentChild.findOne({ parentId, childId });
+        const relationship = await ParentChildAccount.findOne({ parentId, childId });
 
         if (!relationship) {
             return res.status(404).json({ message: "No parent-child relationship found." });
@@ -77,7 +76,7 @@ const unlinkChildFromParent = async (req, res) => {
         const { parentId, childId } = req.body;
 
         // Find and delete parent-child relationship
-        const relationship = await ParentChild.findOneAndDelete({ parentId, childId });
+        const relationship = await ParentChildAccount.findOneAndDelete({ parentId, childId });
 
         if (!relationship) {
             return res.status(404).json({ message: "No parent-child relationship found to unlink." });
@@ -95,7 +94,7 @@ const getLinkedChildren = async (req, res) => {
         const { parentId } = req.params;
 
         // Find all children linked to the parent
-        const childrenLinks = await ParentChild.find({ parentId }).populate('childId');
+        const childrenLinks = await ParentChildAccount.find({ parentId }).populate('childId');
 
         if (!childrenLinks.length) {
             return res.status(404).json({ message: "No children linked to this parent." });
