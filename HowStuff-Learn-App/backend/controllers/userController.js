@@ -8,12 +8,10 @@ const jwt = require('jsonwebtoken');
 const register = async (req, res) => {
     const { username, email, password, role, childName, childGrade } = req.body;
     const normalizedEmail = email.toLowerCase();
-    // Log the request body for debugging
     console.log("Request body:", req.body);
     console.log("Role:", role); // Log the role
 
     try {
-        // Validate required fields
         if (!username || !email || !password) {
             return res.status(400).json({ message: 'Username, email, and password are required.' });
         }
@@ -24,35 +22,29 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'Child name and grade are required for parents.' });
         }
 
-        // Log the password before hashing for debugging
         console.log("Registering user with password:", password);
-
-        // Hash the password using argon2
         const hashedPassword = await argon2.hash(password);
         console.log("Hashed password:", hashedPassword);
 
-        // Create a new user instance with the hashed password
         const newUser = new User({
             username,
             email: normalizedEmail,
-            password, // Save the hashed password
-            userLevel: role === 'student' ? childGrade : undefined, // Set userLevel only for students
+            password, // Save the hashed passwords
+            userLevel: role === 'student' ? childGrade : undefined,
             role
         });
 
-        // Create and reference Child document for parents
         if (role === 'parent') {
             const child = new Child({ 
                 name: childName, 
                 grade: childGrade,
-                curriculum: 'CBC', // Set default curriculum or get it from the request
-                parent: newUser._id // Link the child to the parent user
+                curriculum: 'CBC',
+                parent: newUser._id
             });
-            await child.save(); // Save the child document
-            newUser.children = [child._id]; // Reference the child in the user's children array
+            await child.save();
+            newUser.children = [child._id];
         }
 
-        // Save the user to the database
         await newUser.save();
         res.status(201).json({ message: 'User registered successfully!' });
     } catch (error) {
@@ -63,13 +55,12 @@ const register = async (req, res) => {
 
 module.exports = { register };
 
-
 const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("Login attempt for:", { email });
 
     try {
-        const user = await User.findOne({ email: email.toLowerCase() }); // Ensure email is lowercase
+        const user = await User.findOne({ email: email.toLowerCase() });
         console.log("User found:", user);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -85,21 +76,21 @@ const login = async (req, res) => {
 
         const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Normalize the role
         const normalizedRole = user.role.toLowerCase();
-        
-        // Determine the redirect URL based on the role
         let redirectUrl;
         if (normalizedRole === 'parent') {
             redirectUrl = '/parent-dashboard';
         } else if (normalizedRole === 'student') {
             redirectUrl = '/dashboard';
+        } else if (normalizedRole === 'user') {
+            redirectUrl = '/dashboard'; // Add handling for 'user' role
         } else {
+            console.error("403 Forbidden: Unhandled role detected", user.role);
             return res.status(403).json({ message: 'Invalid role detected' });
         }
 
-        console.log("User role:", normalizedRole); // Log the role
-        console.log("Redirect URL:", redirectUrl); // Log the redirect URL
+        console.log("User role:", normalizedRole);
+        console.log("Redirect URL:", redirectUrl);
 
         res.status(200).json({ message: 'Login successful', token, redirectUrl });
     } catch (error) {
@@ -107,6 +98,7 @@ const login = async (req, res) => {
         res.status(500).json({ message: 'Error logging in', error: error.message });
     }
 };
+
 
 // Get user profile function
 const getProfile = async (req, res) => {
