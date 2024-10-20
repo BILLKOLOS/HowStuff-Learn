@@ -1,34 +1,59 @@
 const mongoose = require('mongoose');
-const { Schema } = mongoose;
 
-// Notification Schema Definition
-const notificationSchema = new Schema({
+// Define the Notification schema
+const notificationSchema = new mongoose.Schema({
     userId: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
+        ref: 'User' // Reference to the User model
     },
     message: {
         type: String,
-        required: true,
+        required: true
     },
     type: {
         type: String,
-        enum: ['lecture', 'feedback', 'poll', 'general'],
-        required: true,
-    },
-    isRead: {
-        type: Boolean,
-        default: false,
+        enum: ['Assignment', 'Welcome', 'General', 'Reminder', 'Lecture'], // Added 'Lecture' to the enum values
+        required: true
     },
     createdAt: {
         type: Date,
-        default: Date.now,
+        default: Date.now
+    },
+    read: {
+        type: Boolean,
+        default: false // Indicates if the notification has been read
+    },
+    acknowledged: {
+        type: Boolean,
+        default: false // Indicates if the notification has been acknowledged
+    },
+    lectureId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Lecture' // Optional reference to a lecture
+    },
+    assignmentId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Assignment' // Optional reference to an assignment
+    },
+    priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High'],
+        default: 'Medium', // Default priority is medium
+    },
+    targetAudience: {
+        type: String,
+        enum: ['Parent', 'Student', 'Both'],
+        required: true,
+    },
+    resourceLink: {
+        type: String, // Optional link to additional resources
+    },
+    expiresAt: {
+        type: Date, // Expiration date for the notification
     },
 });
 
-// Create Notification model
+// Create the Notification model
 const Notification = mongoose.model('Notification', notificationSchema);
-
-// Export the Notification model
 module.exports = Notification;

@@ -162,5 +162,4 @@ lectureSchema.pre('save', function(next) {
 // Create Lecture model
 const Lecture = mongoose.model('Lecture', lectureSchema);
 
-// Export the Lecture model
 module.exports = Lecture;
