@@ -1,0 +1,13 @@
+
+{
+    "title": "Introduction to Machine Learning",
+    "description": "An interactive simulation on basic ML concepts.",
+    "contentType": "simulation",
+    "url": "https://example.com/ml-simulation",
+    "learningModule": "64aedaed4f1c4e1a9bf7b123",
+    "createdBy": "64aedaed4f1c4e1a9bf7b124",
+    "tags": ["machine learning", "simulation", "AI"],
+    "duration": 30,
+    "difficultyLevel": "medium",
+    "learningObjectives": ["Understand ML basics", "Learn about supervised learning"]
+}

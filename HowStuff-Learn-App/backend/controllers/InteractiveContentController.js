@@ -1,18 +1,25 @@
 const InteractiveContent = require('../models/InteractiveContent');
 
+
 // Create interactive content
-exports.createInteractiveContent = async (req, res) => {
-    const { title, description, contentUrl, subject, gradeLevel, tags, difficultyLevel } = req.body;
+const createInteractiveContent = async (req, res) => {
+    // Log the request body to verify the data being passed
+    console.log('Received request body:', req.body);
+
+    const { title, description, contentType, url, learningModule, createdBy, tags, duration, difficultyLevel, learningObjectives } = req.body;
 
     try {
         const interactiveContent = new InteractiveContent({
             title,
             description,
-            contentUrl,
-            subject,
-            gradeLevel,
+            contentType,
+            url,
+            learningModule,
+            createdBy,
             tags,
+            duration,
             difficultyLevel,
+            learningObjectives,
             createdAt: new Date(),
             updatedAt: new Date(),
         });
@@ -20,20 +27,31 @@ exports.createInteractiveContent = async (req, res) => {
         await interactiveContent.save();
         res.status(201).json({ message: 'Interactive content created successfully', interactiveContent });
     } catch (error) {
-        res.status(500).json({ error: 'Failed to create interactive content', details: error.message });
+        console.error('Error saving interactive content:', error);
+
+        // Log specific fields that failed validation
+        if (error.errors) {
+            for (let key in error.errors) {
+                console.error(`${key}:`, error.errors[key].message);
+            }
+        }
+
+        res.status(400).json({ error: 'Failed to create interactive content', details: error.message });
     }
 };
 
+
+
 // Retrieve interactive content based on filters
-exports.getInteractiveContent = async (req, res) => {
+const getInteractiveContent = async (req, res) => {
     const { subject, gradeLevel, tags, difficultyLevel } = req.query;
 
     try {
         const query = {};
         if (subject) query.subject = subject;
         if (gradeLevel) query.gradeLevel = gradeLevel;
-        if (tags) query.tags = { $in: tags.split(',') }; // Filter by tags
-        if (difficultyLevel) query.difficultyLevel = difficultyLevel; // Filter by difficulty
+        if (tags) query.tags = { $in: tags.split(',') };
+        if (difficultyLevel) query.difficultyLevel = difficultyLevel;
 
         const content = await InteractiveContent.find(query);
         res.status(200).json(content);
@@ -43,7 +61,7 @@ exports.getInteractiveContent = async (req, res) => {
 };
 
 // Update existing interactive content
-exports.updateInteractiveContent = async (req, res) => {
+const updateInteractiveContent = async (req, res) => {
     const { id } = req.params;
     const { title, description, contentUrl, subject, gradeLevel, tags, difficultyLevel } = req.body;
 
@@ -63,7 +81,7 @@ exports.updateInteractiveContent = async (req, res) => {
 };
 
 // Delete interactive content
-exports.deleteInteractiveContent = async (req, res) => {
+const deleteInteractiveContent = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -77,16 +95,14 @@ exports.deleteInteractiveContent = async (req, res) => {
 };
 
 // Get content usage analytics
-exports.getContentUsageAnalytics = async (req, res) => {
+const getContentUsageAnalytics = async (req, res) => {
     const { id } = req.params;
 
     try {
         const content = await InteractiveContent.findById(id);
         if (!content) return res.status(404).json({ error: 'Interactive content not found' });
 
-        // Placeholder for analytics logic
-        const usageData = {}; // Replace with actual usage data
-
+        const usageData = {}; // Placeholder for analytics logic
         res.status(200).json({ message: 'Usage analytics retrieved', usageData });
     } catch (error) {
         res.status(500).json({ error: 'Failed to retrieve usage analytics', details: error.message });
@@ -94,7 +110,7 @@ exports.getContentUsageAnalytics = async (req, res) => {
 };
 
 // Rate interactive content
-exports.rateInteractiveContent = async (req, res) => {
+const rateInteractiveContent = async (req, res) => {
     const { id } = req.params;
     const { rating } = req.body;
 
@@ -112,7 +128,7 @@ exports.rateInteractiveContent = async (req, res) => {
 };
 
 // Get average rating of interactive content
-exports.getAverageRating = async (req, res) => {
+const getAverageRating = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -127,7 +143,7 @@ exports.getAverageRating = async (req, res) => {
 };
 
 // Add comments to interactive content
-exports.addComment = async (req, res) => {
+const addComment = async (req, res) => {
     const { id } = req.params;
     const { comment } = req.body;
 
@@ -145,7 +161,7 @@ exports.addComment = async (req, res) => {
 };
 
 // Get comments for interactive content
-exports.getComments = async (req, res) => {
+const getComments = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -166,7 +182,7 @@ const calculateAverageRating = (ratings) => {
 };
 
 // Get all interactive content for a specific subject
-exports.getAllContentBySubject = async (req, res) => {
+const getAllContentBySubject = async (req, res) => {
     const { subject } = req.params;
 
     try {
@@ -178,12 +194,25 @@ exports.getAllContentBySubject = async (req, res) => {
 };
 
 // Get trending interactive content based on views or ratings
-exports.getTrendingContent = async (req, res) => {
+const getTrendingContent = async (req, res) => {
     try {
-        const content = await InteractiveContent.find().sort({ views: -1 }).limit(5); // Example: get top 5 trending content
+        const content = await InteractiveContent.find().sort({ views: -1 }).limit(5);
         res.status(200).json(content);
     } catch (error) {
         res.status(500).json({ error: 'Failed to retrieve trending content', details: error.message });
     }
 };
 
+module.exports = {
+    createInteractiveContent,
+    getInteractiveContent,
+    updateInteractiveContent,
+    deleteInteractiveContent,
+    getContentUsageAnalytics,
+    rateInteractiveContent,
+    getAverageRating,
+    addComment,
+    getComments,
+    getAllContentBySubject,
+    getTrendingContent,
+};

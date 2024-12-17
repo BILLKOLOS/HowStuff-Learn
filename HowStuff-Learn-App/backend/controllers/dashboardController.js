@@ -6,30 +6,28 @@ const Gamification = require('../models/Gamification');
 const Activity = require('../models/Activity');
 const Notification = require('../models/Notification');
 const LearningPathController = require('./learningPathController');
+const ProgressController = require('./ProgressController'); // Assuming a progress tracker exists
 
-// Function to get user activity feed
+// Function to fetch user activity feed
 const getUserActivityFeed = async (userId) => {
     return await Activity.find({ userId }).sort({ createdAt: -1 }).limit(5);
 };
 
-// Function to get user notifications
+// Function to fetch user notifications
 const getUserNotifications = async (userId) => {
     return await Notification.find({ userId }).sort({ createdAt: -1 }).limit(5);
 };
 
-// Function to get the main dashboard
+// Main student dashboard
 const getDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // First, fetch the user data
+        // Fetch user data and preferences
         const user = await User.findById(userId).populate('progress.assessmentId');
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Now that we have the user, proceed to fetch other data concurrently
+        // Concurrently fetch data for the dashboard
         const [
             upcomingLectures,
             recentQuizzes,
@@ -38,6 +36,7 @@ const getDashboard = async (req, res) => {
             activityFeed,
             notifications,
             learningPaths,
+            progressOverview
         ] = await Promise.all([
             Lecture.find({
                 attendees: userId,
@@ -58,18 +57,26 @@ const getDashboard = async (req, res) => {
             Gamification.findOne({ userId }),
             getUserActivityFeed(userId),
             getUserNotifications(userId),
-            LearningPathController.getUserLearningPaths(userId)
+            LearningPathController.getUserLearningPaths(userId),
+            ProgressController.getProgressOverview(userId) // Custom function for summarized progress
         ]);
 
+        // Format response
         res.status(200).json({
+            userInfo: {
+                name: user.name,
+                grade: user.grade,
+                learningGoals: user.learningGoals || [],
+                preferences: user.preferences || {}
+            },
             upcomingLectures,
             recentQuizzes,
-            progress: Array.isArray(user.progress) ? user.progress : [],
             suggestedResources,
             gamificationStatus: gamificationStatus || {},
             activityFeed,
             notifications,
             learningPaths,
+            progressOverview,
             arvrModules: { upcomingLectures, recentQuizzes, suggestedResources }
         });
     } catch (err) {
@@ -78,62 +85,55 @@ const getDashboard = async (req, res) => {
     }
 };
 
-// Function to get the parent dashboard
+// Parent dashboard
 const getParentDashboard = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Fetching parent's children
-        const parentUser = await User.findById(userId).populate('children'); // Assuming 'children' is an array of child user IDs
+        // Fetch parent user and their children
+        const parentUser = await User.findById(userId).populate('children'); 
+        if (!parentUser) return res.status(404).json({ message: 'Parent not found' });
 
-        if (!parentUser) {
-            return res.status(404).json({ message: 'Parent not found' });
-        }
+        const [notifications, recentActivities] = await Promise.all([
+            getUserNotifications(userId),
+            getUserActivityFeed(userId)
+        ]);
 
-        // Fetch notifications and recent activities for the parent
-        const notifications = await getUserNotifications(userId);
-        const recentActivities = await getUserActivityFeed(userId);
-
-        // Fetch details for each child
+        // Fetch children's data
         const childrenDetails = await Promise.all(parentUser.children.map(async (childId) => {
-            try {
-                const child = await User.findById(childId).populate('progress.assessmentId'); // Assuming 'progress' has the assessments
-                return {
-                    _id: child._id,
-                    name: child.name,
-                    grade: child.grade,
-                    progress: child.progress || [],  // Safe access
-                    learningGoals: child.learningGoals || [],  // Safe access
-                    recentActivities: await getUserActivityFeed(childId)  // Child's activity feed
-                };
-            } catch (error) {
-                console.error(`Error fetching child data for childId ${childId}:`, error);
-                return null; // Skip child if there's an error
-            }
+            const child = await User.findById(childId).populate('progress.assessmentId');
+            if (!child) return null;
+
+            const childActivity = await getUserActivityFeed(childId);
+            return {
+                _id: child._id,
+                name: child.name,
+                grade: child.grade,
+                progress: child.progress || [],
+                learningGoals: child.learningGoals || [],
+                recentActivities: childActivity
+            };
         }));
 
-        // Filter out any null values from childrenDetails
+        // Filter null entries
         const validChildrenDetails = childrenDetails.filter(child => child !== null);
 
-        // Fetch upcoming events for the parent's children
-        let upcomingEvents = [];
-        try {
-            upcomingEvents = await Lecture.find({
-                attendees: { $in: parentUser.children },  // Events for the children
-                scheduledTime: { $gte: new Date() }       // Only upcoming events
-            }).sort({ scheduledTime: 1 }).limit(5);      // Limit to 5 and sort by time
-        } catch (error) {
-            console.error("Error fetching upcoming events:", error);
-        }
+        // Fetch upcoming events for children
+        const upcomingEvents = await Lecture.find({
+            attendees: { $in: parentUser.children },
+            scheduledTime: { $gte: new Date() }
+        }).sort({ scheduledTime: 1 }).limit(5);
 
-        // Sending response with parent dashboard data
         res.status(200).json({
+            parentInfo: {
+                name: parentUser.name,
+                childrenCount: parentUser.children.length
+            },
             children: validChildrenDetails,
-            notifications: notifications || [],  // Fallback if undefined
-            recentActivities: recentActivities || [],  // Fallback if undefined
-            upcomingEvents: upcomingEvents || []  // Fallback if undefined
+            notifications,
+            recentActivities,
+            upcomingEvents
         });
-
     } catch (err) {
         console.error("Error fetching parent dashboard data:", err);
         res.status(500).json({ message: 'Failed to load parent dashboard data', error: err.message });

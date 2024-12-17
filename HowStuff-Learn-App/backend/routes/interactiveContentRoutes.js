@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const interactiveContentController = require('../controllers/interactiveContentController');
+const interactiveContentController = require('../controllers/InteractiveContentController');
 
 // Create interactive content
 router.post('/', interactiveContentController.createInteractiveContent);
