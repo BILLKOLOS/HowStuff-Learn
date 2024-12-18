@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, Link } from 'react-router-dom'; // Import Link
 import { useAuthStore } from '@/store/slices/authSlice';
 import '@/assets/styles/layout.css';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,9 +19,8 @@ const DashboardLayout: React.FC = () => {
           <h1 className="nav-brand">Dashboard</h1>
           <div className="nav-links">
             <span className="nav-link">Welcome, {user?.name}</span>
-            <button onClick={logout} className="nav-button">
-              Logout
-            </button>
+            <Link to="/interactive" className="nav-link">Interactive</Link> {/* Add the Interactive link */}
+            <button onClick={logout} className="nav-button">Logout</button>
           </div>
         </nav>
       </header>
