@@ -19,6 +19,7 @@ const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
 
 const registerSchema = z
   .object({
+    name: z.string().min(1, 'Name is required'),  // Added 'name' validation
     username: z.string().min(1, 'Username is required'),
     email: z.string().email('Invalid email').min(1, 'Email is required'),
     password: z
@@ -73,6 +74,7 @@ const registerSchema = z
 
 type RegisterFormData = RegisterCredentials & {
   confirmPassword: string;
+  name: string;  // Added name to the form data type
 };
 
 const Register: React.FC = () => {
@@ -85,7 +87,6 @@ const Register: React.FC = () => {
   });
 
   const role = watch('role');
-
 
   const onSubmit = (data: RegisterFormData) => {
     const { confirmPassword, ...registrationData } = data;
@@ -148,6 +149,12 @@ const Register: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-2 gap-3">
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="name" className="font-bold">Name</Label>
+              <Input {...registerField('name')} id="name" placeholder="Full Name" />
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            </div>
+
             <div className="space-y-2 col-span-2">
               <Label htmlFor="username" className="font-bold">Username</Label>
               <Input {...registerField('username')} id="username" placeholder="John Doe" />

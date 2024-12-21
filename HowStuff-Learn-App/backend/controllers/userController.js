@@ -6,100 +6,152 @@ const jwt = require('jsonwebtoken');
 
 // Register function
 const register = async (req, res) => {
-    const { username, email, password, role, childName, childGrade } = req.body;
-    const normalizedEmail = email.toLowerCase();
-    console.log("Request body:", req.body);
-    console.log("Role:", role); // Log the role
+  const { username, name, email, password, role, childName, childGrade } = req.body;
+  const normalizedEmail = email.toLowerCase();
+  console.log("Request body:", req.body);
+  console.log("Role:", role); // Log the role
 
-    try {
-        if (!username || !email || !password) {
-            return res.status(400).json({ message: 'Username, email, and password are required.' });
-        }
-        if (role === 'student' && !childGrade) {
-            return res.status(400).json({ message: 'Grade is required for students.' });
-        }
-        if (role === 'parent' && (!childName || !childGrade)) {
-            return res.status(400).json({ message: 'Child name and grade are required for parents.' });
-        }
-
-        console.log("Registering user with password:", password);
-        const hashedPassword = await argon2.hash(password);
-        console.log("Hashed password:", hashedPassword);
-
-        const newUser = new User({
-            username,
-            email: normalizedEmail,
-            password, // Save the hashed passwords
-            userLevel: role === 'student' ? childGrade : undefined,
-            role
-        });
-
-        if (role === 'parent') {
-            const child = new Child({ 
-                name: childName, 
-                grade: childGrade,
-                curriculum: 'CBC',
-                parent: newUser._id
-            });
-            await child.save();
-            newUser.children = [child._id];
-        }
-
-        await newUser.save();
-        res.status(201).json({ message: 'User registered successfully!' });
-    } catch (error) {
-        console.error('Error during registration:', error);
-        res.status(500).json({ message: 'Error registering user', error: error.message });
+  try {
+    if (!username || !name || !email || !password) {
+      return res.status(400).json({ message: 'Username, name, email, and password are required.' });
     }
+    if (role === 'student' && !childGrade) {
+      return res.status(400).json({ message: 'Grade is required for students.' });
+    }
+    if (role === 'parent' && (!childName || !childGrade)) {
+      return res.status(400).json({ message: 'Child name and grade are required for parents.' });
+    }
+
+    // Check for existing user by username
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Username already exists.' });
+    }
+
+    // Check for existing user by email
+    const existingEmail = await User.findOne({ email: normalizedEmail });
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Email already exists.' });
+    }
+
+    console.log("Registering user with password:", password);
+    const hashedPassword = await argon2.hash(password);
+    console.log("Hashed password:", hashedPassword);
+
+    const newUser = new User({
+      username,
+      name, // Include name in the user creation
+      email: normalizedEmail,
+      password, // Save the hashed passwords
+      role,
+      userLevel: role === 'student' ? childGrade : undefined,
+    });
+
+    if (role === 'parent') {
+      const child = new Child({
+        name: childName,
+        grade: childGrade,
+        curriculum: 'CBC',
+        parent: newUser._id
+      });
+      await child.save();
+      newUser.children = [child._id];
+    }
+
+    await newUser.save();
+
+    const token = jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const refreshToken = jwt.sign({ userId: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({
+      user: {
+        username: newUser.username,
+        name: newUser.name, // Ensure 'name' is included in the response
+        email: newUser.email,
+        id: newUser._id,
+        role: newUser.role,
+        progress: newUser.progress || 0, // Assuming 'progress' field exists
+        userLevel: newUser.userLevel,
+        childName: newUser.childName,
+        childGrade: newUser.childGrade,
+      },
+      token,
+      refreshToken,
+      expiresIn: 3600, // Expiry time in seconds
+    });
+  } catch (error) {
+    console.error('Error during registration:', error);
+    res.status(500).json({ message: 'Error registering user', error: error.message });
+  }
 };
 
-module.exports = { register };
-
-const login = async (req, res) => {
+  
+  const login = async (req, res) => {
     const { email, password } = req.body;
     console.log("Login attempt for:", { email });
-
+  
     try {
-        const user = await User.findOne({ email: email.toLowerCase() });
-        console.log("User found:", user);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        const isMatch = await argon2.verify(user.password, password);
-        console.log("Password match:", isMatch);
-        
-        if (!isMatch) {
-            console.error("Passwords do not match for user:", email);
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-
-        const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        const normalizedRole = user.role.toLowerCase();
-        let redirectUrl;
-        if (normalizedRole === 'parent') {
-            redirectUrl = '/parent-dashboard';
-        } else if (normalizedRole === 'student') {
-            redirectUrl = '/dashboard';
-        } else if (normalizedRole === 'user') {
-            redirectUrl = '/dashboard'; // Add handling for 'user' role
-        } else {
-            console.error("403 Forbidden: Unhandled role detected", user.role);
-            return res.status(403).json({ message: 'Invalid role detected' });
-        }
-
-        console.log("User role:", normalizedRole);
-        console.log("Redirect URL:", redirectUrl);
-
-        res.status(200).json({ message: 'Login successful', token, redirectUrl });
+      // Find the user in the database
+      const user = await User.findOne({ email: email.toLowerCase() });
+      console.log("User found:", user);
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Verify the provided password against the stored hashed password
+      const isMatch = await argon2.verify(user.password, password);
+      console.log("Password match:", isMatch);
+  
+      if (!isMatch) {
+        console.error("Passwords do not match for user:", email);
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+  
+      // Generate JWT and refresh tokens
+      const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const refreshToken = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  
+      // Determine user role and redirect URL
+      const normalizedRole = user.role.toLowerCase();
+      let redirectUrl;
+      if (normalizedRole === 'parent') {
+        redirectUrl = '/parent-dashboard';
+      } else if (normalizedRole === 'student' || normalizedRole === 'user') {
+        redirectUrl = '/dashboard';
+      } else {
+        console.error("403 Forbidden: Unhandled role detected", user.role);
+        return res.status(403).json({ message: 'Invalid role detected' });
+      }
+  
+      console.log("User role:", normalizedRole);
+      console.log("Redirect URL:", redirectUrl);
+  
+      // Send a structured response
+      res.status(200).json({
+        user: {
+          username: user.username,
+          name: user.name, // Ensure 'name' field is included
+          email: user.email,
+          id: user._id,
+          role: user.role,
+          progress: user.progress || 0, // Default to 0 if no progress field exists
+          userLevel: user.userLevel, // Assuming these fields exist
+          childName: user.childName,
+          childGrade: user.childGrade,
+        },
+        token,
+        refreshToken,
+        expiresIn: 3600, // Expiry time in seconds for clarity
+        redirectUrl, // Include redirect URL for client use
+      });
     } catch (error) {
-        console.error("Error during login:", error);
-        res.status(500).json({ message: 'Error logging in', error: error.message });
+      console.error("Error during login:", error);
+      res.status(500).json({ message: 'Error logging in', error: error.message });
     }
-};
-
-
+  };
+  
+  
 // Get user profile function
 const getProfile = async (req, res) => {
     const userId = req.user.id; // Assuming the user ID is stored in the token
