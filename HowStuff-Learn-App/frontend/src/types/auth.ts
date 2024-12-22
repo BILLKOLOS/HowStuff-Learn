@@ -3,6 +3,9 @@ export interface LoginCredentials {
     password: string;
 }
 
+export interface LecturerLogin extends LoginCredentials {
+    uniqueCode: string; // Lecturer login based on the unique code
+}
 
 export const USER_LEVELS = {
     KINDERGARTEN: 'Kindergarten',
@@ -24,6 +27,8 @@ export interface RegisterCredentials extends LoginCredentials {
 }
 
 export interface User {
+    progress: number;
+    username: any;
     id: string;
     name: string;
     email: string;

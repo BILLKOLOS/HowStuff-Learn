@@ -1,14 +1,18 @@
 const Lecture = require('../models/Lecture'); 
 const User = require('../models/User');
 const Feedback = require('../models/Feedback');
-const nodemailer = require('nodemailer'); // Assuming you use Nodemailer for sending emails
-const auth = require('../middleware/authMiddleware'); // Updated import
+const nodemailer = require('nodemailer');
+const auth = require('../middleware/authMiddleware');
 
 class VirtualLectureController {
     // Create a new virtual lecture
     async createLecture(req, res) {
         try {
             const { title, description, scheduledTime, duration, link, topic, maxParticipants } = req.body;
+            if (!title || !description || !scheduledTime || !duration || !link || !topic || !maxParticipants) {
+                return res.status(400).json({ message: 'All fields are required' });
+            }
+
             const lecture = new Lecture({
                 title,
                 description,
@@ -38,6 +42,10 @@ class VirtualLectureController {
                 return res.status(404).json({ message: 'Lecture not found' });
             }
 
+            if (lecture.participants.includes(userId)) {
+                return res.status(400).json({ message: 'You have already joined this lecture' });
+            }
+
             if (lecture.participants.length >= lecture.maxParticipants) {
                 return res.status(400).json({ message: 'Lecture is full' });
             }
@@ -56,22 +64,26 @@ class VirtualLectureController {
 
     // Send a confirmation email to the user upon joining a lecture
     async sendJoinConfirmationEmail(email, lecture) {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'your-email@gmail.com', // Your email
-                pass: 'your-email-password', // Your email password
-            },
-        });
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS,
+                },
+            });
 
-        const mailOptions = {
-            from: 'your-email@gmail.com',
-            to: email,
-            subject: `Successfully Joined Lecture: ${lecture.title}`,
-            text: `You have successfully joined the lecture: ${lecture.title} scheduled for ${lecture.scheduledTime}.`,
-        };
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: `Successfully Joined Lecture: ${lecture.title}`,
+                text: `You have successfully joined the lecture: ${lecture.title} scheduled for ${lecture.scheduledTime}.`,
+            };
 
-        await transporter.sendMail(mailOptions);
+            await transporter.sendMail(mailOptions);
+        } catch (error) {
+            console.error('Error sending email:', error);
+        }
     }
 
     // Cancel a scheduled virtual lecture
@@ -81,6 +93,10 @@ class VirtualLectureController {
             const lecture = await Lecture.findById(lectureId);
             if (!lecture) {
                 return res.status(404).json({ message: 'Lecture not found' });
+            }
+
+            if (lecture.createdBy.toString() !== req.user.id) {
+                return res.status(403).json({ message: 'You are not authorized to cancel this lecture' });
             }
 
             await Lecture.deleteOne({ _id: lectureId });
@@ -119,6 +135,10 @@ class VirtualLectureController {
     async submitFeedback(req, res) {
         try {
             const { lectureId, rating, comments } = req.body;
+            if (!lectureId || !rating || typeof rating !== 'number') {
+                return res.status(400).json({ message: 'Invalid feedback data' });
+            }
+
             const feedback = new Feedback({
                 lectureId,
                 userId: req.user.id,

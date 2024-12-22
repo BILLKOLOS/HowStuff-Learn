@@ -1,5 +1,5 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/slices/authSlice';
 import {
   BookOpen,
@@ -11,13 +11,19 @@ import {
   Brain
 } from 'lucide-react';
 import Greeting from '../../components/Greeting/Greeting';
-import SummaryCards from '../../components/SummaryCards/SummaryCards';
+// import SummaryCards from '../../components/SummaryCards/SummaryCards';
 import ProgressSection from '../../components/ProgressSection/ProgressSection';
 import ScheduleSection from '../../components/ScheduleSection/ScheduleSection';
 import NotificationsSection from '../../components/NotificationsSection/NotificationsSection';
 import QuickActionsSection from '../../components/QuickActionsSection/QuickActionsSection';
 
-const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
+// Define the prop types for the Sidebar component
+interface SidebarProps {
+  isMobile: boolean;
+  setMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isMobile, setMobileMenuOpen }) => {
   const mainMenuItems = [
     { icon: BarChart2, text: 'Dashboard', active: true },
     { icon: BookOpen, text: 'My Courses' },
@@ -95,18 +101,28 @@ const Sidebar = ({ isMobile, setMobileMenuOpen }) => {
 };
 
 const Dashboard = () => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, validateToken } = useAuthStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!validateToken()) {
+      console.log('Token validation failed. Redirecting to login...');
+      navigate('/login');
+    } else {
+      console.log('Token validated successfully.');
+    }
+  }, [validateToken, navigate]);
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return null; // Or some loading indicator
   }
 
   return (
     <div className="flex">
-      <Sidebar isMobile={false} />
+      <Sidebar isMobile={false} setMobileMenuOpen={setMobileMenuOpen} />
       <div className="flex-1 p-6 bg-gray-100">
-        <Greeting username={user?.username} progress={user?.progress || 0} />
-        <SummaryCards />
+        <Greeting />
         <ProgressSection />
         <QuickActionsSection />
         <NotificationsSection />

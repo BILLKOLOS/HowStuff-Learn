@@ -11,15 +11,15 @@ const api: AxiosInstance = axios.create({
     },
 });
 
+// Add Auth Token to Request if Needed
 async function addAuthTokenToRequest(conf: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> {
-    /*skip login and refresh endpoints*/
     const isAuthEndpoint = [
         config.loginEndpoint,
         config.refreshTokenEndpoint
     ].includes(conf.url || '');
 
     if (!isAuthEndpoint) {
-        const token = useAuthStore.getState().accessToken
+        const token = useAuthStore.getState().accessToken;
         if (token && conf.headers) {
             conf.headers.set('Authorization', `Bearer ${token}`);
         }
@@ -27,6 +27,7 @@ async function addAuthTokenToRequest(conf: InternalAxiosRequestConfig): Promise<
     return conf;
 }
 
+// Handle Unauthorized Response (e.g., Token Expiry)
 function handleUnauthorizedResponse(error: AxiosError): Promise<never> {
     if (error.response?.status === 401) {
         useAuthStore.getState().clearAuth();
@@ -66,11 +67,25 @@ export const authApi = {
             }
         }
     },
+
+    // Lecturer login endpoint
+    lecturerLogin: async (credentials: LoginCredentials) => {
+        try {
+            const { data } = await api.post(config.lecturerLoginEndpoint, credentials); // Assuming config has this endpoint
+            return data;
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.response) {
+                throw new AuthError(error.response.data.message);
+            }
+            throw new NetworkError('An error occurred during the request.');
+        }
+    },
+
     verifyToken: async (token: string) => {
-        /*Implementation of token verification with  backend needed*/
-        const response = await api.post(config.verifyTokenEndpoint, token)
+        const response = await api.post(config.verifyTokenEndpoint, token);
         if (!response.status) throw new Error('Invalid token');
     },
+
     refreshToken: async (refreshToken: string) => {
         try {
             const { data } = await api.post(config.refreshTokenEndpoint, { refreshToken });

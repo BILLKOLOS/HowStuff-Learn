@@ -17,6 +17,7 @@ interface AuthState {
   clearAuth: () => void;
   setError: (error: string | null) => void;
   validateToken: () => boolean;
+  lecturerLogin: (uniqueCode: string) => Promise<void>; // Lecturer login mutation
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,106 +35,158 @@ export const useAuthStore = create<AuthState>()(
 
       setTokens: async (response) => {
         try {
-          // Log the entire response for debugging
-          console.log("Authentication response:", response);
+          console.log("Authentication response received:", response);
 
-          // Destructure the response and ensure necessary fields are available
+          if (!response) {
+            throw new Error("Received undefined response from the authentication API.");
+          }
+
           const { user, token, refreshToken, expiresIn } = response;
 
-          // Check if response contains all required fields
+          console.log("User data:", user);
+          console.log("Token:", token);
+          console.log("Refresh Token:", refreshToken);
+          console.log("Expires In:", expiresIn);
+
           if (!user) {
             throw new Error("Missing 'user' in the response.");
           }
-          if (!user.username) {
-            throw new Error("Missing 'username' in the user object.");
-          }
-          if (!user.name) {
-            throw new Error("Missing 'name' in the user object.");
-          }
-          if (!user.id) {
-            throw new Error("Missing 'id' in the user object.");
-          }
-          if (!user.email) {
-            throw new Error("Missing 'email' in the user object.");
-          }
-          if (!user.role) {
-            throw new Error("Missing 'role' in the user object.");
-          }
+
           if (!token) {
             throw new Error("Missing 'token' in the response.");
           }
           if (!refreshToken) {
             throw new Error("Missing 'refreshToken' in the response.");
           }
-          if (!expiresIn) {
-            throw new Error("Missing 'expiresIn' in the response.");
-          }
 
-          console.log("Setting tokens:", { user, token, refreshToken, expiresIn });
+          const tokenExpiresIn = expiresIn || 3600;
+
+          console.log("Setting tokens with user data:", {
+            user,
+            token,
+            refreshToken,
+            tokenExpiresIn
+          });
 
           // Update the state with the received data
           set({
             user: {
               progress: user.progress,
-              username: user.username,
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
+              username: user.username || user.name,
+              id: user.id || "default-id",
+              name: user.name || "Unknown",
+              email: user.email || "Unknown",
+              role: user.role || "user",
               userLevel: user.userLevel,
               childName: user.childName,
               childGrade: user.childGrade,
             },
             accessToken: token,
             refreshToken,
-            tokenExpiresAt: Date.now() + expiresIn * 1000,
+            tokenExpiresAt: Date.now() + tokenExpiresIn * 1000,
             isAuthenticated: true,
-            error: null
+            error: null,
           });
 
-          // Prepare auth data to be encrypted and stored
           const authData = JSON.stringify({
             user: {
               progress: user.progress,
-              username: user.username,
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              role: user.role,
+              username: user.username || user.name,
+              id: user.id || "default-id",
+              name: user.name || "Unknown",
+              email: user.email || "Unknown",
+              role: user.role || "user",
               userLevel: user.userLevel,
               childName: user.childName,
               childGrade: user.childGrade,
             },
-            token,
+            accessToken: token,
             refreshToken,
-            expiresIn
+            expiresIn: tokenExpiresIn,
           });
 
-          // Encrypt and store in sessionStorage
           try {
             const encrypted = await encrypt(authData);
             sessionStorage.setItem('auth-storage', encrypted);
-            console.log("Encrypted auth data:", encrypted);
+            console.log("Encrypted auth data successfully stored:", encrypted);
           } catch (err) {
-            // Handle the 'unknown' type of err
             if (err instanceof Error) {
               console.error("Error encrypting auth data:", err.message);
-              set({ error: `Failed to encrypt auth data: ${err.message}. Please try again later.` });
+              set({
+                error: `Failed to encrypt auth data: ${err.message}. Please try again later.`,
+              });
             } else {
               console.error("Unknown error encrypting auth data:", err);
-              set({ error: 'Failed to encrypt auth data. Please try again later.' });
+              set({
+                error: 'Failed to encrypt auth data. Please try again later.',
+              });
             }
           }
 
         } catch (err) {
-          // Handle the 'unknown' type of err
           if (err instanceof Error) {
             console.error('Error setting tokens:', err.message);
-            set({ error: `Failed to set authentication tokens: ${err.message}. Please check the server response and try again.` });
+            set({
+              error: `Failed to set authentication tokens: ${err.message}. Please check the server response and try again.`,
+            });
           } else {
             console.error('Unknown error setting tokens:', err);
-            set({ error: 'Failed to set authentication tokens. Please check the server response and try again.' });
+            set({
+              error: 'Failed to set authentication tokens. Please check the server response and try again.',
+            });
           }
+        }
+      },
+
+      lecturerLogin: async (uniqueCode: string) => {
+        set({ isLoading: true });
+        try {
+          console.log('Starting lecturer login...');
+          const response = await fetch('http://localhost:5000/lecturer/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ uniqueCode }),
+          });
+
+          console.log('Fetch response:', response);
+
+          if (!response.ok) {
+            throw new Error('Lecturer authentication failed: ' + response.statusText);
+          }
+
+          const data = await response.json();
+          console.log('Parsed JSON data:', data);
+
+          if (!data) {
+            throw new Error('No data returned from lecturer authentication API');
+          }
+
+          // Adjust the field names to match the expected structure
+          const authData = {
+            ...data,
+            token: data.accessToken, // Ensure 'token' is correctly mapped from 'accessToken'
+          };
+
+          console.log('Data before setting tokens:', authData);
+
+          // Set tokens if response is valid
+          await get().setTokens(authData);
+
+          // Redirect to the lecturer dashboard
+          window.location.href = '/lecturer-dashboard';
+
+        } catch (err) {
+          if (err instanceof Error) {
+            console.error('Lecturer login error:', err.message);
+            set({ error: `Lecturer login failed: ${err.message}. Please try again later.` });
+          } else {
+            console.error('Unknown error during lecturer login:', err);
+            set({ error: 'Lecturer login failed. Please try again later.' });
+          }
+        } finally {
+          set({ isLoading: false });
         }
       },
 
@@ -159,9 +212,11 @@ export const useAuthStore = create<AuthState>()(
         set({ isAuthenticated: isTokenValid });
 
         if (!isTokenValid) {
+          console.log('Token has expired. Clearing auth...');
           get().clearAuth();
+        } else {
+          console.log('Token is still valid.');
         }
-
         return isTokenValid;
       }
     }),
@@ -177,7 +232,6 @@ export const useAuthStore = create<AuthState>()(
             console.log("Decrypted auth data:", decrypted);
             return decrypted;
           } catch (err) {
-            // Handle the 'unknown' type of err
             if (err instanceof Error) {
               console.error('Error decrypting storage item:', err.message);
             } else {
@@ -192,7 +246,6 @@ export const useAuthStore = create<AuthState>()(
             sessionStorage.setItem(key, encryptedValue);
             console.log("Stored encrypted value:", encryptedValue);
           } catch (err) {
-            // Handle the 'unknown' type of err
             if (err instanceof Error) {
               console.error('Error encrypting storage item:', err.message);
             } else {

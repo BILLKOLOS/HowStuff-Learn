@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Navigate, Link } from 'react-router-dom'; // Import Link
+import { Outlet, Navigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/slices/authSlice';
 import '@/assets/styles/layout.css';
 import { useAuth } from '@/hooks/useAuth';
@@ -19,7 +19,13 @@ const DashboardLayout: React.FC = () => {
           <h1 className="nav-brand">Dashboard</h1>
           <div className="nav-links">
             <span className="nav-link">Welcome, {user?.name}</span>
-            <Link to="/interactive" className="nav-link">Interactive</Link> {/* Add the Interactive link */}
+
+            {/* Conditional link for lecturers */}
+            {user?.role === 'lecturer' && (
+              <Link to="/lecturer-dashboard" className="nav-link">Lecturer Dashboard</Link>
+            )}
+
+            <Link to="/interactive" className="nav-link">Interactive</Link>
             <button onClick={logout} className="nav-button">Logout</button>
           </div>
         </nav>
