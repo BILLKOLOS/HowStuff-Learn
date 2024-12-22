@@ -203,9 +203,28 @@ const getTrendingContent = async (req, res) => {
     }
 };
 
+
+
+// Other controller functions...
+
+// Retrieve specific interactive content by ID
+const getInteractiveContentById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const content = await InteractiveContent.findById(id);
+        if (!content) return res.status(404).json({ message: 'Content not found' });
+
+        res.status(200).json(content);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to retrieve content', details: error.message });
+    }
+};
+
 module.exports = {
     createInteractiveContent,
     getInteractiveContent,
+    getInteractiveContentById, // Add the function to the exports
     updateInteractiveContent,
     deleteInteractiveContent,
     getContentUsageAnalytics,

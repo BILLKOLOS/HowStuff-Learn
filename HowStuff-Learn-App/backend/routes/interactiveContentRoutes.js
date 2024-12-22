@@ -5,8 +5,11 @@ const interactiveContentController = require('../controllers/InteractiveContentC
 // Create interactive content
 router.post('/', interactiveContentController.createInteractiveContent);
 
-// Retrieve interactive content
+// Retrieve all interactive content
 router.get('/', interactiveContentController.getInteractiveContent);
+
+// Retrieve specific interactive content by ID
+router.get('/:id', interactiveContentController.getInteractiveContentById);
 
 // Update interactive content
 router.put('/:id', interactiveContentController.updateInteractiveContent);
@@ -36,4 +39,3 @@ router.get('/subject/:subject', interactiveContentController.getAllContentBySubj
 router.get('/trending', interactiveContentController.getTrendingContent);
 
 module.exports = router;
-

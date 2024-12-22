@@ -49,6 +49,7 @@ const communityRoutes = require('./routes/communityRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const lecturerRoutes = require('./routes/lecturerRoutes'); // Import lecturer routes
 
+
 // Import the interactive content routes
 const interactiveContentRoutes = require('./routes/interactiveContentRoutes');
 
