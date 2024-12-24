@@ -20,7 +20,7 @@ const interactiveContentSchema = new Schema({
         type: String,
         required: true,
         validate: {
-            validator: function(v) {
+            validator: function (v) {
                 return /^(ftp|http|https):\/\/[^ "]+$/.test(v); // Validate URL format
             },
             message: props => `${props.value} is not a valid URL!`,
@@ -39,8 +39,8 @@ const interactiveContentSchema = new Schema({
     tags: [{
         type: String, // Tags for categorization
     }],
-    duration: { 
-        type: Number, 
+    duration: {
+        type: Number,
         required: true, // Duration in minutes
     },
     difficultyLevel: {
@@ -72,6 +72,19 @@ const interactiveContentSchema = new Schema({
             default: Date.now,
         },
     }],
+    averageRating: {
+        type: Number,
+        default: 0, // Precomputed average rating
+    },
+    views: {
+        type: Number,
+        default: 0, // Track number of views
+    },
+    analytics: {
+        type: Map,
+        of: Number, // Placeholder for analytics data
+        default: {}, // Initialize as an empty map
+    },
     version: {
         type: Number,
         default: 1, // Initial version
@@ -91,7 +104,7 @@ const interactiveContentSchema = new Schema({
 });
 
 // Middleware to update `updatedAt` before saving
-interactiveContentSchema.pre('save', function(next) {
+interactiveContentSchema.pre('save', function (next) {
     this.updatedAt = Date.now();
     next();
 });

@@ -1,7 +1,7 @@
 const express = require('express'); 
 const router = express.Router();
 const userController = require('../controllers/userController');
-const progressController = require('../controllers/progressController');
+const progressController = require('../controllers/ProgressController');
 const parentChildController = require('../controllers/parentChildController');
 const authMiddleware = require('../middleware/authMiddleware');
 

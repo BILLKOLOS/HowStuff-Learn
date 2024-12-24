@@ -1,0 +1,13 @@
+
+{
+    "title": "Introduction to Machine Learning",
+    "description": "A simulative approach to machine learning concepts.",
+    "contentType": "simulation",
+    "url": "https://example.com/ml-simulation",
+    "learningModule": "64aedaed4f1c4e1a9bf7b125",
+    "createdBy": "64aedaed4f1c4e1a9bf7b126",
+    "tags": ["machine learning", "AI", "simulation"],
+    "duration": 50,
+    "difficultyLevel": "medium",
+    "learningObjectives": ["Understand machine learning basics", "Learn about different ML algorithms"]
+}
