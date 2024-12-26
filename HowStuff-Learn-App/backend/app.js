@@ -41,24 +41,34 @@ const contentRoutes = require('./routes/contentRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const learningPathRoutes = require('./routes/learningPathRoutes');
 const virtualLectureRoutes = require('./routes/virtualLectureRoutes');
+
 const paymentRoutes = require('./routes/paymentRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const collaborationRoutes = require('./routes/collaborationRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const lecturerRoutes = require('./routes/lecturerRoutes'); // Import lecturer routes
+
+
+// Import the interactive content routes
+const interactiveContentRoutes = require('./routes/interactiveContentRoutes');
 
 // Use routes
 app.use('/auth', authRoutes);
+app.use('/lecturer', lecturerRoutes); // Define the lecturer route prefix
 app.use('/users', userRoutes);
 app.use('/content', contentRoutes);
 app.use('/feedback', feedbackRoutes);
 app.use('/learning-path', learningPathRoutes);
 app.use('/virtual-lectures', virtualLectureRoutes);
-//app.use('/payments', paymentRoutes);
-//app.use('/projects', projectRoutes);
+// app.use('/payments', paymentRoutes);
+// app.use('/projects', projectRoutes);
 app.use('/collaboration', collaborationRoutes);
-//app.use('/community', communityRoutes);
+// app.use('/community', communityRoutes);
 app.use('/', dashboardRoutes);
+
+// Define the route for interactive content
+app.use('/api/interactive-content', interactiveContentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

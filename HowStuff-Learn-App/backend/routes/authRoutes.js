@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
+const lecturerController = require('../controllers/lecturerController'); // Include lecturer controller
 const authMiddleware = require('../middleware/authMiddleware');
 
 // User registration
@@ -8,6 +9,9 @@ router.post('/register', userController.register);
 
 // User login
 router.post('/login', userController.login);
+
+// Lecturer login
+router.post('/lecturer/login', lecturerController.login); // Add lecturer login route
 
 // Link a child's account to the parent account
 router.post('/link-child', authMiddleware.verifyToken, userController.linkChildAccount);
