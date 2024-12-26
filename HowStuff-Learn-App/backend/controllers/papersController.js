@@ -1,6 +1,74 @@
 // controllers/pastPaperController.js
-
 const PastPaper = require('../models/Papers');
+const stripe = require('../config/stripe');
+const s3 = require('../config/aws');
+
+
+const createCheckoutSession = async (req, res) => {
+  try {
+    const { paperId } = req.body;
+    const paper = await PastPaper.findById(paperId);
+
+    if (!paper) {
+      return res.status(404).json({ message: 'Paper not found' });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: paper.title,
+          },
+          unit_amount: 500, // Amount in cents, e.g., $5.00
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/cancel`,
+    });
+
+    res.json({ id: session.id });
+  } catch (error) {
+    console.error('Error creating checkout session:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+const downloadPaper = async (req, res) => {
+  try {
+    const { paperId } = req.params;
+    const paper = await PastPaper.findById(paperId);
+
+    if (!paper) {
+      return res.status(404).json({ message: 'Paper not found' });
+    }
+
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: paper.file, // Assuming `file` is the key for the paper in S3
+    };
+
+    s3.getObject(params, (err, data) => {
+      if (err) {
+        console.error('Error fetching file from S3:', err);
+        return res.status(500).json({ message: 'Server error' });
+      }
+
+      res.attachment(paper.file); // Send file as attachment
+      res.send(data.Body);
+    });
+  } catch (error) {
+    console.error('Error downloading paper:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+
+
+
 
 // Fetch papers with pagination, filters, and sorting
 const fetchPapers = async (req, res) => {
@@ -113,4 +181,12 @@ const searchPapers = async (req, res) => {
   }
 };
 
-module.exports = { fetchPapers, createPaper, deletePaper, searchPapers };
+module.exports = {
+  fetchPapers,
+  createPaper,
+  deletePaper,
+  searchPapers,
+  createCheckoutSession,
+  downloadPaper
+};
+

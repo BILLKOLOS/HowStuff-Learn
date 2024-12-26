@@ -3,6 +3,8 @@ import { Button, Modal, Select, MenuItem, Card } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+
 const PastPapers: React.FC = () => {
   const [institution, setInstitution] = useState<string | null>(null);
   const [school, setSchool] = useState<string | null>(null);
