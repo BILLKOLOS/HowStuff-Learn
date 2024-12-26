@@ -37,6 +37,7 @@ app.use(session({
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const paperRoutes = require('./routes/paperRoutes')
 const contentRoutes = require('./routes/contentRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const learningPathRoutes = require('./routes/learningPathRoutes');
@@ -61,6 +62,7 @@ app.use('/content', contentRoutes);
 app.use('/feedback', feedbackRoutes);
 app.use('/learning-path', learningPathRoutes);
 app.use('/virtual-lectures', virtualLectureRoutes);
+app.use('/paper', paperRoutes);
 // app.use('/payments', paymentRoutes);
 // app.use('/projects', projectRoutes);
 app.use('/collaboration', collaborationRoutes);

@@ -1,25 +1,18 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-// Layouts
 import MainLayout from '@/layouts/MainLayout';
 import AuthLayout from '@/layouts/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import InteractiveLayout from '@/layouts/InteractiveLayout';
-import SimulationLayout from '@/layouts/SimulationLayout';
-
-// Pages
 import Home from '@/pages/Home';
 import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
 import Dashboard from '@/pages/dashboard/Dashboard';
 import Interactive from '@/pages/interactive/Interactive';
 import Simulation from '@/pages/simulation/Simulation';
-import Lecture from '@/components/Lecture/LiveLecture';
-import LecturerDashboard from '@/components/LecturerDashboard/LecturerDashboard';
-
-// Components
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary';
+import SimulationLayout from '@/layouts/SimulationLayout';
+import Papers from '@/pages/papers/Papers';
 import ProtectedRoute from '@/components/ProtectedRoute/ProtectedRoute';
 
 const App: React.FC = () => {
@@ -42,14 +35,13 @@ const App: React.FC = () => {
           <Route element={<DashboardLayout />}>
             <Route element={<ProtectedRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/lecturer-dashboard" element={<LecturerDashboard />} />
+              <Route path="/papers" element={<Papers />} />
             </Route>
           </Route>
 
           {/* Interactive Layout */}
           <Route element={<InteractiveLayout />}>
             <Route path="/interactive" element={<Interactive />} />
-            <Route path="/lecture/:id" element={<Lecture />} />
           </Route>
 
           {/* Simulation Layout */}
