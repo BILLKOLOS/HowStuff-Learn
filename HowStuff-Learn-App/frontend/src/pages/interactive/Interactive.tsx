@@ -13,17 +13,24 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Rating,
+  Autocomplete,
+  Chip,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const Interactive: React.FC = () => {
   const [content, setContent] = useState([]);
   const [selectedContent, setSelectedContent] = useState<any>(null);
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate(); // Initialize useNavigate
+  const [searchQuery, setSearchQuery] = useState('');
+  const [tags, setTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchContent();
+    fetchTags();
   }, []);
 
   const fetchContent = async () => {
@@ -35,11 +42,20 @@ const Interactive: React.FC = () => {
     }
   };
 
+  const fetchTags = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/tags');
+      setTags(response.data);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+    }
+  };
+
   const handleUpdate = async (id: string) => {
     try {
       const response = await axios.put(`http://localhost:5000/api/interactive-content/${id}`, selectedContent);
       console.log('Content updated:', response.data);
-      fetchContent(); // Refresh content after update
+      fetchContent();
     } catch (error) {
       console.error('Error updating content:', error);
     }
@@ -49,7 +65,7 @@ const Interactive: React.FC = () => {
     try {
       await axios.delete(`http://localhost:5000/api/interactive-content/${id}`);
       console.log('Content deleted');
-      fetchContent(); // Refresh content after deletion
+      fetchContent();
     } catch (error) {
       console.error('Error deleting content:', error);
     }
@@ -59,7 +75,7 @@ const Interactive: React.FC = () => {
     try {
       const response = await axios.post(`http://localhost:5000/api/interactive-content/${id}/rate`, { rating });
       console.log('Content rated:', response.data);
-      fetchContent(); // Refresh content after rating
+      fetchContent();
     } catch (error) {
       console.error('Error rating content:', error);
     }
@@ -81,16 +97,53 @@ const Interactive: React.FC = () => {
   };
 
   const handleRedirect = (id: string) => {
-    navigate(`/simulation/${id}`); // Redirect to simulation playground with ID
+    navigate(`/simulation/${id}`);
   };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleTagChange = (_event: any, newValue: string[]) => {
+    setSelectedTags(newValue);
+  };
+
+  const filteredContent = content.filter((item: any) => {
+    const matchesSearchQuery = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTags = selectedTags.every(tag => item.tags.includes(tag));
+    return matchesSearchQuery && matchesTags;
+  });
 
   return (
     <Container>
       <Typography variant="h4" gutterBottom>
         Interactive Dashboard
       </Typography>
+      <TextField
+        label="Search"
+        variant="outlined"
+        fullWidth
+        margin="normal"
+        value={searchQuery}
+        onChange={handleSearch}
+      />
+      <Autocomplete
+        multiple
+        options={tags}
+        getOptionLabel={(option: string) => option}
+        value={selectedTags}
+        onChange={(event: any, newValue: string[]) => handleTagChange(event, newValue)}
+        renderInput={(params) => (
+          <TextField {...params} variant="outlined" label="Filter by tags" placeholder="Tags" />
+        )}
+        renderTags={(value: string[], getTagProps) =>
+          value.map((option: string, index: number) => (
+            <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+          ))
+        }
+      />
       <Grid container spacing={3}>
-        {content.map((item: any) => (
+        {filteredContent.map((item: any) => (
           <Grid item xs={12} sm={6} md={4} key={item._id}>
             <Card>
               <CardContent>
@@ -106,12 +159,14 @@ const Interactive: React.FC = () => {
                 <Button size="small" color="secondary" onClick={() => handleDelete(item._id)}>
                   Delete
                 </Button>
-                <Button size="small" color="primary" onClick={() => handleRate(item._id, 5)}>
-                  Rate 5
-                </Button>
+                <Rating
+                  name={`rating-${item._id}`}
+                  value={item.rating || 0}
+                  onChange={(_event, newValue) => handleRate(item._id, newValue || 0)}
+                />
                 <Button size="small" color="primary" onClick={() => handleRedirect(item._id)}>
                   View
-                </Button> {/* Add View button */}
+                </Button>
               </CardActions>
             </Card>
           </Grid>
