@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Modal, Select, MenuItem, Card } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-
+import axios from 'axios';
 
 const PastPapers: React.FC = () => {
   const [institution, setInstitution] = useState<string | null>(null);
@@ -19,16 +19,26 @@ const PastPapers: React.FC = () => {
     // Fetch initial data for institutions or other dropdowns
     // This could be an API call
   }, []);
-
-  const fetchPapers = () => {
-    // Simulate an API call to fetch papers based on selected filters
-    const mockPapers = [
-      { id: 1, title: 'Math 101 - Semester 1', preview: 'This is a math paper preview.' },
-      { id: 2, title: 'Physics 202 - Semester 2', preview: 'This is a physics paper preview.' },
-    ];
-    setPapers(mockPapers);
+  const fetchPapers = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/paper/papers', {
+        params: {
+          institution,
+          school,
+          department,
+          course,
+          yearSemester,
+        },
+      });
+      console.log('API Response:', response.data);
+      setPapers(response.data.papers); // Access the 'papers' array within the response
+    } catch (error) {
+      console.error('Error fetching papers:', error);
+    }
   };
+  
 
+  
   const handlePreview = (paper: any) => {
     setPreviewPaper(paper.preview);
     setIsModalVisible(true);
@@ -107,11 +117,11 @@ const PastPapers: React.FC = () => {
       </div>
       <div className="papers-list">
         {papers.map((paper) => (
-          <Card key={paper.id} variant="outlined" style={{ margin: '10px 0', padding: '10px' }}>
+          <Card key={paper._id} variant="outlined" style={{ margin: '10px 0', padding: '10px' }}>
             <h3>{paper.title}</h3>
             <p>{paper.preview.slice(0, 50)}...</p>
             <Button variant="text" onClick={() => handlePreview(paper)}>Preview</Button>
-            <Button variant="contained" color="primary" onClick={() => handleDownload(paper.id)}>Pay & Download</Button>
+            <Button variant="contained" color="primary" onClick={() => handleDownload(paper._id)}>Pay & Download</Button>
           </Card>
         ))}
       </div>
