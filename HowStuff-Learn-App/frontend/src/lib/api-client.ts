@@ -51,7 +51,7 @@ export const authApi = {
             if (axios.isAxiosError(error) && error.response) {
                 throw new AuthError(error.response.data.message);
             }
-            throw new NetworkError('An error occurred during the request.');
+            throw new NetworkError('Sorry! Login failed due to unstable or no internet connection.');
         }
     },
 
@@ -63,7 +63,7 @@ export const authApi = {
             if (axios.isAxiosError(error) && error.response) {
                 throw new AuthError(error.response.data.message);
             } else {
-                throw new NetworkError('An error occurred during the request.');
+                throw new NetworkError('Sorry! Registration failed due to unstable or no internet connection.');
             }
         }
     },
@@ -77,7 +77,7 @@ export const authApi = {
             if (axios.isAxiosError(error) && error.response) {
                 throw new AuthError(error.response.data.message);
             }
-            throw new NetworkError('An error occurred during the request.');
+            throw new NetworkError('Dear educator, please check the strength of your internet connection and try again.');
         }
     },
 

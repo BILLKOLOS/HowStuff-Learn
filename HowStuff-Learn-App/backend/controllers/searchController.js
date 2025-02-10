@@ -1,16 +1,14 @@
-const services = require('../utils/apiServices');
+const services = require('../utils/apiService');
 const axios = require('axios');
 
-const WOLFRAM_APP_ID = 'KJT7V4-762WRXLHKK'; // Wolfram Alpha API Key
+const WOLFRAM_APP_ID = 'KJT7V4-V2VJE3Q338'; // Wolfram Alpha API Key
 
 // Define the search controller
 const searchController = {
-    // Search function to handle search queries
     async search(req, res) {
         try {
-            const { query } = req.body;
+            const { query } = req.query;
 
-            // Validate the input
             if (!query || typeof query !== 'string') {
                 return res.status(400).json({
                     success: false,
@@ -18,52 +16,70 @@ const searchController = {
                 });
             }
 
-            // Store results from all services
             const results = {};
 
-            // Iterate through each service and perform the search
-            for (const [serviceName, service] of Object.entries(services)) {
-                try {
-                    if (typeof service.search !== 'function') {
-                        throw new Error(`Service ${serviceName} does not have a search method.`);
-                    }
+            // Parallel execution of service searches
+            const servicePromises = Object.entries(services).map(async ([serviceName, service]) => {
+                if (typeof service.search !== 'function') {
+                    return { serviceName, success: false, message: `Service ${serviceName} has no search method.` };
+                }
 
+                try {
                     const serviceResults = await service.search(query);
-                    results[serviceName] = {
-                        success: true,
-                        data: serviceResults,
-                    };
+                    return { serviceName, success: true, data: serviceResults };
                 } catch (error) {
                     console.error(`Error searching with ${serviceName}:`, error);
-                    results[serviceName] = {
-                        success: false,
-                        message: error.message || 'Error retrieving data.',
-                    };
+                    return { serviceName, success: false, message: error.message || 'Error retrieving data.' };
                 }
-            }
+            });
 
-            // Wolfram Alpha API Call (Short Answers API)
-            try {
-                const wolframResponse = await axios.get(`https://api.wolframalpha.com/v1/result`, {
+            // Wolfram Alpha API Call
+            const wolframPromise = axios
+                .get('https://api.wolframalpha.com/v2/query', {
                     params: {
-                        i: query,
+                        input: query,
                         appid: WOLFRAM_APP_ID,
+                        format: 'plaintext',
+                        output: 'json',
                     },
+                })
+                .then(response => {
+                    const pods = response.data.queryresult.pods || [];
+                    return {
+                        serviceName: 'wolfram_alpha',
+                        success: true,
+                        data: pods
+                            .map(pod => ({
+                                title: pod.title,
+                                subpods: pod.subpods.map(sub => sub.plaintext).filter(Boolean),
+                            }))
+                            .filter(pod => pod.subpods.length > 0),
+                    };
+                })
+                .catch(error => {
+                    console.error('Error fetching data from Wolfram Alpha:', error);
+                    return { serviceName: 'wolfram_alpha', success: false, message: 'Error retrieving Wolfram Alpha data.' };
                 });
 
-                results['wolfram_alpha'] = {
-                    success: true,
-                    data: wolframResponse.data,
-                };
-            } catch (wolframError) {
-                console.error('Error fetching data from Wolfram Alpha:', wolframError);
-                results['wolfram_alpha'] = {
-                    success: false,
-                    message: 'Error retrieving Wolfram Alpha data.',
-                };
-            }
+            // Execute all API calls in parallel
+            const serviceResults = await Promise.allSettled([...servicePromises, wolframPromise]);
 
-            // Send back the aggregated results
+            // Store the results in a structured format
+            serviceResults.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    results[result.value.serviceName] = {
+                        success: result.value.success,
+                        data: result.value.data || null,
+                        message: result.value.message || null,
+                    };
+                } else {
+                    results[result.reason.serviceName] = {
+                        success: false,
+                        message: result.reason.message || 'Unknown error',
+                    };
+                }
+            });
+
             return res.status(200).json({
                 success: true,
                 query,

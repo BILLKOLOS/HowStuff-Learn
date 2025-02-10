@@ -49,7 +49,7 @@ const collaborationRoutes = require('./routes/collaborationRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const lecturerRoutes = require('./routes/lecturerRoutes'); // Import lecturer routes
-
+const searchRoutes = require('./routes/searchRoutes');
 
 // Import the interactive content routes
 const interactiveContentRoutes = require('./routes/interactiveContentRoutes');
@@ -63,6 +63,8 @@ app.use('/feedback', feedbackRoutes);
 app.use('/learning-path', learningPathRoutes);
 app.use('/virtual-lectures', virtualLectureRoutes);
 app.use('/paper', paperRoutes);
+app.use('/api', searchRoutes); // 🔹 This ensures that /api/search works
+
 // app.use('/payments', paymentRoutes);
 // app.use('/projects', projectRoutes);
 app.use('/collaboration', collaborationRoutes);
