@@ -1,5 +1,7 @@
-// Import necessary services from various directories
 const services = require('../utils/apiServices');
+const axios = require('axios');
+
+const WOLFRAM_APP_ID = 'KJT7V4-762WRXLHKK'; // Wolfram Alpha API Key
 
 // Define the search controller
 const searchController = {
@@ -22,12 +24,10 @@ const searchController = {
             // Iterate through each service and perform the search
             for (const [serviceName, service] of Object.entries(services)) {
                 try {
-                    // Check if the service has a 'search' method
                     if (typeof service.search !== 'function') {
                         throw new Error(`Service ${serviceName} does not have a search method.`);
                     }
 
-                    // Call the search method and store the results
                     const serviceResults = await service.search(query);
                     results[serviceName] = {
                         success: true,
@@ -40,6 +40,27 @@ const searchController = {
                         message: error.message || 'Error retrieving data.',
                     };
                 }
+            }
+
+            // Wolfram Alpha API Call (Short Answers API)
+            try {
+                const wolframResponse = await axios.get(`https://api.wolframalpha.com/v1/result`, {
+                    params: {
+                        i: query,
+                        appid: WOLFRAM_APP_ID,
+                    },
+                });
+
+                results['wolfram_alpha'] = {
+                    success: true,
+                    data: wolframResponse.data,
+                };
+            } catch (wolframError) {
+                console.error('Error fetching data from Wolfram Alpha:', wolframError);
+                results['wolfram_alpha'] = {
+                    success: false,
+                    message: 'Error retrieving Wolfram Alpha data.',
+                };
             }
 
             // Send back the aggregated results
