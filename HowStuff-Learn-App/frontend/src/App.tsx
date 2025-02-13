@@ -9,6 +9,7 @@ import Login from '@/pages/auth/Login';
 import Register from '@/pages/auth/Register';
 import Dashboard from '@/pages/dashboard/Dashboard';
 import Interactive from '@/pages/interactive/Interactive';
+import Animation from '@/components/Animation/Animation';
 import Simulation from '@/pages/simulation/Simulation';
 import ErrorBoundary from '@/components/ErrorBoundary/ErrorBoundary';
 import SimulationLayout from '@/layouts/SimulationLayout';
