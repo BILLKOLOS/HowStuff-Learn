@@ -21,7 +21,6 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     startCommand: serve -s build
-    staticPublishPath: build
     envVars:
       - key: VITE_API_URL
         value: https://howstuff-backend.onrender.com
