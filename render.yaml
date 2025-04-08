@@ -15,9 +15,8 @@ services:
       - key: SESSION_SECRET
         value: supersecretsessionkey123
 
-  - type: web
+  - type: static_site
     name: howstuff-frontend
-    env: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
