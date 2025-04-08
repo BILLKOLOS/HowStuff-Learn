@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: howstuff-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URI
+        value: mongodb+srv://Billooko:Bill2020$2019@cluster0.5bdq7lh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: JWT_SECRET
+        value: supersecretjwtkey123
+      - key: SESSION_SECRET
+        value: supersecretsessionkey123
+
+  - type: static
+    name: howstuff-frontend
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://howstuff-backend.onrender.com
