@@ -15,12 +15,13 @@ services:
       - key: SESSION_SECRET
         value: supersecretsessionkey123
 
-  - type: static
+  - type: web
     name: howstuff-frontend
+    env: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: build
+    staticPublishPath: dist
     envVars:
-      - key: REACT_APP_API_URL
+      - key: VITE_API_URL
         value: https://howstuff-backend.onrender.com
